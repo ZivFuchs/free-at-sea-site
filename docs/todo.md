@@ -1,0 +1,5 @@
+- [ ] Scaffold Astro/Sanity app on CloudFlare worker
+- [ ] Deploy
+  - [ ] Live site
+  - [ ] Staging site
+  - [ ] Sanity studio (and separate staging? Or maybe taken care of through sanity deployment)
