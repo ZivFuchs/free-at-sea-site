@@ -1,0 +1,40 @@
+---
+import { NOINDEX } from "astro:env/server";
+import { getSite } from "@/lib/site";
+import "@/styles/global.css";
+
+interface Props {
+	title?: string;
+	description?: string;
+	noindex?: boolean;
+}
+
+const site = await getSite();
+const { title = site.title, description = site.description, noindex } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<title>{title}</title>
+		<meta name="description" content={description} />
+		<link rel="canonical" href={canonical} />
+		{(noindex || NOINDEX) && <meta name="robots" content="noindex" />}
+		<link rel="sitemap" href="/sitemap-index.xml" />
+
+		<meta property="og:type" content="website" />
+		<meta property="og:site_name" content={site.title} />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:url" content={canonical} />
+	</head>
+	<body class="flex min-h-dvh flex-col">
+		<main id="main" class="container-page flex-1 py-12 md:py-16">
+			<slot />
+		</main>
+	</body>
+</html>

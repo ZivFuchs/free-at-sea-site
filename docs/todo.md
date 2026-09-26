@@ -1,4 +1,4 @@
-- [ ] Scaffold Astro/Sanity app on CloudFlare worker
+- [x] Scaffold Astro/Sanity app on CloudFlare worker
 - [ ] Deploy
   - [ ] Live site
   - [ ] Staging site

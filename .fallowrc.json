@@ -1,0 +1,8 @@
+{
+	"ignorePatterns": [
+		"**/dist/**",
+		"**/.astro/**",
+		"**/worker-configuration.d.ts",
+		"packages/content/src/generated/**"
+	]
+}

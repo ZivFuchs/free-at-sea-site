@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+@theme {
+	--color-paper: oklch(0.985 0.003 230);
+	--color-ink: oklch(0.2 0.03 240);
+	--color-muted: oklch(0.48 0.02 240);
+	--color-accent: oklch(0.45 0.09 230);
+
+	--font-serif: Georgia, "Times New Roman", serif;
+
+	--container-prose: 68ch;
+	--container-page: 80rem;
+}
+
+@utility container-page {
+	margin-inline: auto;
+	width: 100%;
+	max-width: var(--container-page);
+	padding-inline: --spacing(6);
+	@media (width >= 48rem) {
+		padding-inline: --spacing(10);
+	}
+}
+
+@layer base {
+	body {
+		background-color: var(--color-paper);
+		color: var(--color-ink);
+		font-family: var(--font-serif);
+		-webkit-font-smoothing: antialiased;
+	}
+
+	h1,
+	h2,
+	h3 {
+		text-wrap: balance;
+	}
+
+	p {
+		text-wrap: pretty;
+	}
+
+	:focus-visible {
+		outline: 2px solid var(--color-accent);
+		outline-offset: 2px;
+	}
+}

@@ -1,0 +1,11 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { getSite } from "@/lib/site";
+
+const site = await getSite();
+---
+
+<Layout>
+	<h1 class="text-4xl font-bold md:text-6xl">{site.title}</h1>
+	<p class="mt-4 text-lg text-muted md:text-xl">{site.tagline}</p>
+</Layout>

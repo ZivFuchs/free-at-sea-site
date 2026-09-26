@@ -1,0 +1,21 @@
+packages:
+  - apps/*
+  - packages/*
+
+allowBuilds:
+  esbuild: true
+  sharp: true
+  "@biomejs/biome": true
+  workerd: true
+
+overrides:
+
+  # Cloudflare ships daily; these pins keep the tree inside the minimumReleaseAge policy.
+  # Bump deliberately once each release clears the age window.
+  wrangler: "4.129.0"
+  workerd: "1.20260906.1"
+  miniflare: "5.20260903.0-alpha"
+  "@cloudflare/vite-plugin": "1.54.4"
+
+  # One Vite for Astro and @tailwindcss/vite; two copies make their Plugin types clash in astro check.
+  vite: "8.3.0"

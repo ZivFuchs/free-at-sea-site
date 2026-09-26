@@ -1,0 +1,23 @@
+{
+	"name": "free-at-sea-site",
+	"private": true,
+	"type": "module",
+	"packageManager": "pnpm@11.21.0",
+	"engines": {
+		"node": ">=22.12"
+	},
+	"scripts": {
+		"dev": "pnpm -r --parallel dev",
+		"build": "pnpm -r build",
+		"typecheck": "pnpm -r typecheck",
+		"lint": "biome check .",
+		"fix": "biome check --write .",
+		"analyze": "fallow",
+		"codegen": "pnpm --filter studio typegen"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.5.12",
+		"fallow": "^3.22.0",
+		"typescript": "^6.0.3"
+	}
+}

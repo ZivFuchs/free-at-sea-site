@@ -1,0 +1,17 @@
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"account_id": "4009597948c3d6ff2b8c74ed78b418cd",
+	"name": "free-at-sea-studio",
+	"compatibility_date": "2026-09-03",
+	"assets": {
+		"directory": "./dist",
+		"not_found_handling": "single-page-application"
+	},
+	"workers_dev": false,
+	"routes": [
+		{
+			"pattern": "studio.freeatseafilm.com",
+			"custom_domain": true
+		}
+	]
+}

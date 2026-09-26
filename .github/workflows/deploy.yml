@@ -1,0 +1,66 @@
+name: Deploy
+
+# main → staging, production, Studio once CI passes
+# Sanity publish webhook → production
+# Actions tab "Run workflow" → any one target
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  repository_dispatch:
+    types: [sanity-publish]
+  workflow_dispatch:
+    inputs:
+      target:
+        type: choice
+        options: [staging, production, studio]
+        default: staging
+
+permissions:
+  contents: read
+
+env:
+  PUBLIC_SANITY_PROJECT_ID: ${{ vars.PUBLIC_SANITY_PROJECT_ID }}
+  PUBLIC_SANITY_DATASET: ${{ vars.PUBLIC_SANITY_DATASET }}
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+# No cancel-in-progress: never abort a deploy midway. GitHub keeps one pending run per group,
+# so a burst of publishes collapses into a single build of the latest content.
+jobs:
+  staging:
+    if: github.event.workflow_run.conclusion == 'success' || inputs.target == 'staging'
+    concurrency: deploy-staging
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+      - uses: ./.github/actions/setup
+      - run: pnpm --filter site build:staging
+        env:
+          SANITY_API_READ_TOKEN: ${{ secrets.SANITY_API_READ_TOKEN }}
+      - run: pnpm --filter site run deploy
+
+  production:
+    if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'repository_dispatch' || inputs.target == 'production'
+    concurrency: deploy-production
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+      - uses: ./.github/actions/setup
+      - run: pnpm --filter site build
+      - run: pnpm --filter site run deploy
+
+  studio:
+    if: github.event.workflow_run.conclusion == 'success' || inputs.target == 'studio'
+    concurrency: deploy-studio
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+      - uses: ./.github/actions/setup
+      - run: pnpm --filter studio run deploy
