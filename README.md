@@ -14,7 +14,7 @@ Site for the film Free at Sea. Astro on Cloudflare Workers, content in Sanity.
 cp .env.example .env   # fill in PUBLIC_SANITY_PROJECT_ID
 pnpm install
 pnpm --filter site cf-types
-pnpm dev               # site on :4321, Studio on :3333
+pnpm dev               # site on :4324, Studio on :3335
 ```
 
 See [`CLAUDE.md`](CLAUDE.md) for commands, architecture and tooling quirks.

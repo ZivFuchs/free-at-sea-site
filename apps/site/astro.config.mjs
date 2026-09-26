@@ -7,6 +7,7 @@ import { defineConfig, envField } from "astro/config";
 
 export default defineConfig({
 	site: "https://freeatseafilm.com",
+	server: { port: 4324 },
 	adapter: cloudflare(),
 	env: {
 		schema: {
