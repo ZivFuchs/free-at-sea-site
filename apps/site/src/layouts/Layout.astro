@@ -49,7 +49,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
 	</head>
 	<body {...sx(styles.body)}>
 		<a href="#main" {...sx(styles.skip)}>Skip to content</a>
-		<Header />
+		<Header overlay={Astro.slots.has("hero")} />
 		<main id="main" {...sx(styles.main)}>
 			<slot name="hero" />
 			<div {...sx(layout.container, styles.content)}>

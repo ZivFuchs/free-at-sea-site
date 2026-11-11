@@ -7,7 +7,7 @@ export const styles = stylex.create({
 	section: {
 		position: "relative",
 		isolation: "isolate",
-		height: "calc(100svh - 4rem)",
+		height: "100svh",
 		minHeight: "32rem",
 		overflow: "hidden",
 		backgroundColor: color.ink,

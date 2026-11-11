@@ -6,12 +6,18 @@ import { layout } from "@/styles/layout";
 import { text } from "@/styles/text";
 import { styles } from "./Header.styles";
 
+interface Props {
+	/** Overlays the content below, transparent until scrolled. */
+	overlay?: boolean;
+}
+
+const { overlay = false } = Astro.props;
 const site = await getSite();
 const { pathname } = Astro.url;
 const isCurrent = (href: string) => pathname.startsWith(href);
 ---
 
-<header data-site-header {...sx(styles.header)}>
+<header data-site-header data-overlay={overlay ? "" : undefined} {...sx(styles.header, overlay && styles.overlay)} style={overlay ? "--solid: 0" : undefined}>
 	<div {...sx(layout.container, styles.bar)}>
 		<a href="/" {...sx(text.lg, text.wordmark)}>{site.title}</a>
 
@@ -73,23 +79,25 @@ const isCurrent = (href: string) => pathname.startsWith(href);
 	const THRESHOLD = 8;
 
 	if (header) {
+		const overlay = header.hasAttribute("data-overlay");
 		let last = Math.max(0, scrollY);
-		addEventListener(
-			"scroll",
-			() => {
-				const y = Math.max(0, scrollY);
-				header.toggleAttribute("data-scrolled", y > 0);
-				if (Math.abs(y - last) < THRESHOLD) return;
-				const hide =
-					y > last &&
-					y > header.offsetHeight &&
-					!header.matches(":focus-within") &&
-					!menu?.matches(":popover-open");
-				header.toggleAttribute("data-hidden", hide);
-				last = y;
-			},
-			{ passive: true },
-		);
+		let frame = 0;
+		const update = () => {
+			frame = 0;
+			const y = Math.max(0, scrollY);
+			const fade = overlay ? Math.max(header.offsetHeight, innerHeight * 0.3) : 0;
+			if (overlay) header.style.setProperty("--solid", String(Math.min(y / fade, 1)));
+			if (Math.abs(y - last) < THRESHOLD) return;
+			const hide =
+				y > last &&
+				y > fade + header.offsetHeight &&
+				!header.matches(":focus-within") &&
+				!menu?.matches(":popover-open");
+			header.toggleAttribute("data-hidden", hide);
+			last = y;
+		};
+		update();
+		addEventListener("scroll", () => (frame ||= requestAnimationFrame(update)), { passive: true });
 		header.addEventListener("focusin", () => header.removeAttribute("data-hidden"));
 	}
 </script>
