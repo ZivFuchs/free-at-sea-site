@@ -52,9 +52,14 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
 		<Header overlay={Astro.slots.has("hero")} />
 		<main id="main" {...sx(styles.main)}>
 			<slot name="hero" />
-			<div {...sx(layout.container, styles.content)}>
-				<slot />
-			</div>
+			<slot name="sections" />
+			{
+				Astro.slots.has("default") && (
+					<div {...sx(layout.container, styles.content)}>
+						<slot />
+					</div>
+				)
+			}
 		</main>
 		<FooterShowcase />
 	</body>

@@ -1,16 +1,19 @@
 ---
 import { EXPERIMENTS } from "astro:env/server";
+import Clips from "@/components/clips/Clips.astro";
 import ExperimentsPanel from "@/components/experiments/ExperimentsPanel.astro";
 import { footerExperiment } from "@/components/footer/experiments/variants";
 import { heroFontExperiment } from "@/components/hero/experiments/fonts";
 import HeroShowcase, { heroExperiment } from "@/components/hero/experiments/HeroShowcase.astro";
 import Layout from "@/layouts/Layout.astro";
+import { getClips } from "@/lib/clips";
 import { getSite } from "@/lib/site";
 
-const site = await getSite();
+const [site, clips] = await Promise.all([getSite(), getClips()]);
 ---
 
 <Layout>
 	<HeroShowcase slot="hero" site={site} />
-	{(EXPERIMENTS || import.meta.env.DEV) && <ExperimentsPanel groups={[heroExperiment, heroFontExperiment, footerExperiment]} />}
+	<Clips slot="sections" clips={clips} />
+	{(EXPERIMENTS || import.meta.env.DEV) && <ExperimentsPanel slot="sections" groups={[heroExperiment, heroFontExperiment, footerExperiment]} />}
 </Layout>

@@ -15,6 +15,48 @@
 export declare const internalGroqTypeReferenceTo: unique symbol;
 
 // Source: schema.json
+export type SanityImageAssetReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
+};
+
+export type Clip = {
+  _id: string;
+  _type: "clip";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  title: string;
+  url: string;
+  caption?: string;
+  thumbnail?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    _type: "image";
+  };
+  order?: number;
+};
+
+export type SanityImageCrop = {
+  _type: "sanity.imageCrop";
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+};
+
+export type SanityImageHotspot = {
+  _type: "sanity.imageHotspot";
+  x: number;
+  y: number;
+  height: number;
+  width: number;
+};
+
 export type SiteSettings = {
   _id: string;
   _type: "siteSettings";
@@ -63,22 +105,6 @@ export type SanityImageMetadata = {
   thumbHash?: string;
   hasAlpha?: boolean;
   isOpaque?: boolean;
-};
-
-export type SanityImageHotspot = {
-  _type: "sanity.imageHotspot";
-  x: number;
-  y: number;
-  height: number;
-  width: number;
-};
-
-export type SanityImageCrop = {
-  _type: "sanity.imageCrop";
-  top: number;
-  bottom: number;
-  left: number;
-  right: number;
 };
 
 export type SanityFileAsset = {
@@ -147,13 +173,15 @@ export type Slug = {
 };
 
 export type AllSanitySchemaTypes =
+  | SanityImageAssetReference
+  | Clip
+  | SanityImageCrop
+  | SanityImageHotspot
   | SiteSettings
   | SanityImagePaletteSwatch
   | SanityImagePalette
   | SanityImageDimensions
   | SanityImageMetadata
-  | SanityImageHotspot
-  | SanityImageCrop
   | SanityFileAsset
   | SanityAssetSourceData
   | SanityImageAsset
@@ -170,10 +198,28 @@ export type SITE_SETTINGS_QUERY_RESULT = {
   email: string | null;
 } | null;
 
+// Source: ../../packages/content/src/queries.ts
+// Variable: CLIPS_QUERY
+// Query: *[_type == "clip" && defined(url)] | order(order asc, _createdAt desc){	_id, title, url, caption, thumbnail}
+export type CLIPS_QUERY_RESULT = Array<{
+  _id: string;
+  title: string;
+  url: string;
+  caption: string | null;
+  thumbnail: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    _type: "image";
+  } | null;
+}>;
+
 // Query TypeMap
 declare global {
   interface SanityQueries {
     '*[_type == "siteSettings" && _id == "siteSettings"][0]{\n\ttitle, tagline, description, email\n}': SITE_SETTINGS_QUERY_RESULT;
+    '*[_type == "clip" && defined(url)] | order(order asc, _createdAt desc){\n\t_id, title, url, caption, thumbnail\n}': CLIPS_QUERY_RESULT;
   }
 }
 // Lets @sanity/client releases that predate the global registry read it too

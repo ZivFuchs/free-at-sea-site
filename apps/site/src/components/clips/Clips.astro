@@ -1,0 +1,191 @@
+---
+import type { Clip } from "@/lib/clips";
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+import { cols, phone, rows, styles, tileMarker } from "./Clips.styles";
+import { compose } from "./compose";
+
+interface Props {
+	clips: Clip[];
+}
+
+const { clips } = Astro.props;
+
+const pad = (n: number) => String(n).padStart(2, "0");
+const cells = compose(clips.length);
+const many = clips.length > 1;
+---
+
+{
+	clips.length > 0 && (
+		<section aria-label="Clips" data-clips {...sx(styles.section)}>
+			<div {...sx(layout.container)}>
+				<h2 {...sx(styles.heading)}>Clips</h2>
+
+				<div {...sx(styles.sheet)}>
+					<ul {...sx(styles.grid)}>
+						{clips.map(({ title, caption, url, embed, thumbnail }, i) => {
+							const cell = cells[i];
+							return (
+								<li {...sx(tileMarker, styles.tile, cell && cols[cell.cols], cell && rows[cell.rows], cell && phone[cell.phone])}>
+									<a
+										href={url}
+										data-embed={embed}
+										data-title={title}
+										data-caption={caption ?? ""}
+										data-poster={thumbnail ?? ""}
+										aria-label={`Play ${title}`}
+										{...sx(styles.link)}
+									>
+										{thumbnail && (
+											<img src={thumbnail} alt="" loading={i === 0 ? "eager" : "lazy"} decoding="async" {...sx(styles.poster)} />
+										)}
+										<span {...sx(styles.scrim)} />
+										<span {...sx(styles.legend)}>
+											<span {...sx(styles.words)}>
+												<span {...sx(styles.index)}>{pad(i + 1)}</span>
+												<span {...sx(styles.clipTitle)}>
+													<span {...sx(styles.titleText, !thumbnail && styles.titleShown)}>{title}</span>
+												</span>
+											</span>
+											<span {...sx(styles.play)}>
+												<svg viewBox="0 0 12 14" aria-hidden="true" {...sx(styles.triangle)}>
+													<path d="M0 0v14l12-7z" fill="currentColor" />
+												</svg>
+											</span>
+										</span>
+										<span {...sx(styles.veil)} />
+									</a>
+								</li>
+							);
+						})}
+					</ul>
+				</div>
+			</div>
+
+			<dialog aria-label="Clip player" data-fill={sx(styles.fill).class} {...sx(styles.dialog)}>
+				<div data-dismiss {...sx(styles.room)}>
+					<div data-dismiss {...sx(styles.bar)}>
+						<p {...sx(styles.kicker)}>Free at Sea · Clips</p>
+						<button type="button" data-close {...sx(styles.close)}>
+							Close
+							<svg viewBox="0 0 10 10" aria-hidden="true" {...sx(styles.cross)}>
+								<path d="M1 1l8 8M9 1l-8 8" fill="none" stroke="currentColor" stroke-width="1.25" />
+							</svg>
+						</button>
+					</div>
+					<div data-dismiss {...sx(styles.stage)}>
+						<div {...sx(styles.column)}>
+							<div data-frame {...sx(styles.frame)}>
+								<img data-still alt="" hidden {...sx(styles.fill, styles.still)} />
+							</div>
+							<div {...sx(styles.info)}>
+								<div aria-live="polite" {...sx(styles.text)}>
+									{many && <p data-position {...sx(styles.position)} />}
+									<h3 data-title {...sx(styles.nowTitle)} />
+									<p data-caption {...sx(styles.nowCaption)} />
+								</div>
+								{many && (
+									<div {...sx(styles.steps)}>
+										<button type="button" data-step="-1" aria-label="Previous clip" {...sx(styles.step)}>
+											<svg viewBox="0 0 16 16" aria-hidden="true" {...sx(styles.arrow)}>
+												<path d="M15 8H2M7 3L2 8l5 5" fill="none" stroke="currentColor" stroke-width="1.25" />
+											</svg>
+										</button>
+										<button type="button" data-step="1" aria-label="Next clip" {...sx(styles.step)}>
+											<svg viewBox="0 0 16 16" aria-hidden="true" {...sx(styles.arrow)}>
+												<path d="M1 8h13M9 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.25" />
+											</svg>
+										</button>
+									</div>
+								)}
+							</div>
+						</div>
+					</div>
+				</div>
+			</dialog>
+		</section>
+	)
+}
+
+<script>
+	for (const root of document.querySelectorAll<HTMLElement>("[data-clips]")) {
+		const dialog = root.querySelector("dialog");
+		const frame = dialog?.querySelector<HTMLElement>("[data-frame]");
+		if (!dialog || !frame) continue;
+
+		const tiles = [...root.querySelectorAll<HTMLAnchorElement>("a[data-embed]")];
+		const still = frame.querySelector<HTMLImageElement>("[data-still]");
+		const title = dialog.querySelector<HTMLElement>("[data-title]");
+		const caption = dialog.querySelector<HTMLElement>("[data-caption]");
+		const position = dialog.querySelector<HTMLElement>("[data-position]");
+		const pad = (n: number) => String(n).padStart(2, "0");
+		const page = document.documentElement;
+		let current = 0;
+		let opener: HTMLElement | undefined;
+
+		const clear = () => frame.querySelector("iframe")?.remove();
+
+		const show = (i: number) => {
+			const tile = tiles[i];
+			if (!tile) return;
+			current = i;
+			clear();
+			const { embed = "", title: name = "", caption: words = "", poster = "" } = tile.dataset;
+			if (title) title.textContent = name;
+			if (caption) caption.textContent = words;
+			if (position) position.textContent = `${pad(i + 1)} / ${pad(tiles.length)}`;
+			if (still) {
+				still.hidden = !poster;
+				if (poster) still.src = poster;
+				else still.removeAttribute("src");
+			}
+			const iframe = document.createElement("iframe");
+			iframe.src = embed;
+			iframe.title = name;
+			iframe.allow = "autoplay; fullscreen; picture-in-picture; encrypted-media";
+			iframe.allowFullscreen = true;
+			iframe.className = dialog.dataset.fill ?? "";
+			frame.appendChild(iframe);
+			// Restart the frame's entrance for the new clip.
+			frame.style.animationName = "none";
+			void frame.offsetWidth;
+			frame.style.animationName = "";
+		};
+
+		const step = (by: number) => show((current + by + tiles.length) % tiles.length);
+
+		tiles.forEach((tile, i) => {
+			tile.addEventListener("click", (event) => {
+				if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+				event.preventDefault();
+				opener = tile;
+				page.style.overflow = "hidden";
+				dialog.showModal();
+				show(i);
+			});
+		});
+
+		dialog.addEventListener("click", (event) => {
+			if (!(event.target instanceof Element)) return;
+			const button = event.target.closest<HTMLElement>("[data-step], [data-close]");
+			if (button?.dataset.step) step(Number(button.dataset.step));
+			else if (button || event.target === dialog || event.target.hasAttribute("data-dismiss")) dialog.close();
+		});
+
+		dialog.addEventListener("keydown", (event) => {
+			if (tiles.length < 2 || event.metaKey || event.ctrlKey || event.altKey) return;
+			const by = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
+			if (!by) return;
+			event.preventDefault();
+			step(by);
+		});
+
+		dialog.addEventListener("close", () => {
+			clear();
+			page.style.overflow = "";
+			opener?.focus();
+			opener = undefined;
+		});
+	}
+</script>
