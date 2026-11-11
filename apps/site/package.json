@@ -11,24 +11,29 @@
 		"typecheck": "astro check",
 		"deploy": "wrangler deploy",
 		"astro": "astro",
-		"cf-types": "wrangler types"
+		"cf-types": "wrangler types",
+		"theme": "astryx theme build src/theme/freeAtSeaTheme.ts --out src/theme/built/free-at-sea.css"
 	},
 	"dependencies": {
 		"@astrojs/cloudflare": "^14.3.0",
 		"@astrojs/react": "^6.0.5",
 		"@astrojs/sitemap": "^3.7.4",
+		"@astryxdesign/core": "0.7.11",
 		"@fas/content": "workspace:*",
 		"@sanity/image-url": "^2.1.1",
-		"@tailwindcss/vite": "^4.3.3",
+		"@stylexjs/stylex": "0.19.1",
 		"@types/react": "^19.2.18",
 		"@types/react-dom": "^19.2.7",
 		"astro": "^7.3.1",
 		"react": "^19.2.8",
-		"react-dom": "^19.2.8",
-		"tailwindcss": "^4.3.3"
+		"react-dom": "^19.2.8"
 	},
 	"devDependencies": {
 		"@astrojs/check": "^0.9.10",
+		"@astryxdesign/build": "0.7.11",
+		"@astryxdesign/cli": "0.7.11",
+		"@stylexjs/babel-plugin": "0.19.1",
+		"@stylexjs/unplugin": "0.19.1",
 		"wrangler": "4.129.0"
 	}
 }

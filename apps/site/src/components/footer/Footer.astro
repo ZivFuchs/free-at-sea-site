@@ -1,0 +1,42 @@
+---
+import type { StyleXStyles } from "@stylexjs/stylex";
+import { NAV } from "@/lib/nav";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+import { text } from "@/styles/text";
+import { styles } from "./Footer.styles";
+
+/* `backdrop` fills the footer behind the content: the seabed. */
+interface Props {
+	xstyle?: StyleXStyles;
+}
+
+const { xstyle } = Astro.props;
+const site = await getSite();
+const link = sx(text.sm, text.navLink, styles.link);
+---
+
+<footer {...sx(styles.footer, xstyle)}>
+	<div aria-hidden="true" {...sx(styles.backdrop)}>
+		<slot name="backdrop" />
+	</div>
+
+	<div {...sx(layout.container, styles.body)}>
+		<div>
+			<a href="/" {...sx(text.xl2, text.wordmark)}>{site.title}</a>
+			<p {...sx(styles.tagline)}>{site.tagline}</p>
+		</div>
+
+		<nav aria-label="Footer">
+			<ul {...sx(styles.list)}>
+				{NAV.map(({ label, href }) => <li><a href={href} {...link}>{label}</a></li>)}
+				{site.email && <li><a href={`mailto:${site.email}`} {...link}>Contact</a></li>}
+			</ul>
+		</nav>
+	</div>
+
+	<div {...sx(layout.container, styles.legal, text.xs)}>
+		© {new Date().getFullYear()} {site.title}
+	</div>
+</footer>

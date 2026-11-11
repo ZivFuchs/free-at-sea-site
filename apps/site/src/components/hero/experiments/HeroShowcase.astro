@@ -1,0 +1,30 @@
+---
+/* Hero directions compared in place. Rendered as the `hero` group of the experiments panel.
+ * Stills stand in for footage until video is supplied (HeroMedia `video`). */
+import Experiment from "@/components/experiments/Experiment.astro";
+import type { ExperimentGroup } from "@/components/experiments/types";
+import type { SiteSettings } from "@/lib/site";
+import Waterline from "./Waterline.astro";
+
+interface Props {
+	site: SiteSettings;
+}
+
+const { site } = Astro.props;
+
+export const heroExperiment: ExperimentGroup = {
+	key: "hero",
+	label: "Hero",
+	variants: [
+		{
+			id: "waterline",
+			label: "1 · Waterline",
+			note: "The title rises out of the sea and settles on the horizon, its lower third submerged and rippling. The lone barge sits in the open water below.",
+		},
+	],
+};
+---
+
+<Experiment group="hero" id="waterline" active>
+	<Waterline site={site} />
+</Experiment>

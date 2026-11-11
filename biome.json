@@ -55,10 +55,5 @@
 				}
 			}
 		}
-	],
-	"css": {
-		"parser": {
-			"tailwindDirectives": true
-		}
-	}
+	]
 }

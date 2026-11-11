@@ -1,5 +1,16 @@
-- [x] Scaffold Astro/Sanity app on CloudFlare worker
-- [ ] Deploy
-  - [ ] Live site
-  - [ ] Staging site
-  - [ ] Sanity studio (and separate staging? Or maybe taken care of through sanity deployment)
+# Design / Page Layout
+
+Palette
+Theme
+
+# Homepage
+
+Header as clouds over ocean sky?
+Footer as bottom of the ocean?
+Going deeper down Ocean as you scroll
+
+# Deployment
+
+- [ ] Staging site (auth guarded)
+- [ ] Sanity studio (auth guarded)
+- [ ] Live site (public)

@@ -1,7 +1,13 @@
 ---
+import { Font } from "astro:assets";
 import { NOINDEX } from "astro:env/server";
+import FooterShowcase from "@/components/footer/experiments/FooterShowcase.astro";
+import Header from "@/components/Header.astro";
 import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
 import "@/styles/global.css";
+import { layout } from "@/styles/layout";
+import { styles } from "./Layout.styles";
 
 interface Props {
 	title?: string;
@@ -15,7 +21,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" data-astryx-theme="free-at-sea" data-theme="light">
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -25,6 +31,15 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
 		<link rel="canonical" href={canonical} />
 		{(noindex || NOINDEX) && <meta name="robots" content="noindex" />}
 		<link rel="sitemap" href="/sitemap-index.xml" />
+		<Font cssVariable="--font-anton" preload />
+		{
+			import.meta.env.DEV && (
+				<>
+					<link rel="stylesheet" href="/virtual:stylex.css" />
+					<script is:inline type="module" src="/@id/virtual:stylex:runtime"></script>
+				</>
+			)
+		}
 
 		<meta property="og:type" content="website" />
 		<meta property="og:site_name" content={site.title} />
@@ -32,9 +47,15 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
 		<meta property="og:description" content={description} />
 		<meta property="og:url" content={canonical} />
 	</head>
-	<body class="flex min-h-dvh flex-col">
-		<main id="main" class="container-page flex-1 py-12 md:py-16">
-			<slot />
+	<body {...sx(styles.body)}>
+		<a href="#main" {...sx(styles.skip)}>Skip to content</a>
+		<Header />
+		<main id="main" {...sx(styles.main)}>
+			<slot name="hero" />
+			<div {...sx(layout.container, styles.content)}>
+				<slot />
+			</div>
 		</main>
+		<FooterShowcase />
 	</body>
 </html>

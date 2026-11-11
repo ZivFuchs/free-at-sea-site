@@ -1,8 +1,13 @@
 # free-at-sea-site
 
-Site for the film Free at Sea.
+Site for the film Free at Sea. The film is about Seasteading, the movement to build settlements in international waters.
 
-## Principles
+## Design Principes
+
+**Sea**: The film is about the sea, and the design should reflect that across the board. But not in tacky or overbearing ways.
+**Mobile First**: The design should be mobile-first, with a responsive layout that works well on all devices.
+
+## Coding Principles
 
 **Type Safety**: Write type safe code to ensure correctness wherever possible.
 **Don't Repeat Yourself**: Don't unnecessarily redefine constants, helpers, and types locally if they could reasonably be used elsewhere. Derive types from existing types, including library types if applicable, wherever possible.
@@ -53,6 +58,27 @@ Content fetching uses `@sanity/client` at build time. Site-wide copy lives in th
 React is wired up but should stay rare. Native HTML first (`<details>`, `<dialog>`), then plain `.astro`, then a React
 island only when a component needs real client state. Always use the narrowest hydration directive available.
 
+### Styling
+
+StyleX everywhere, on the Astryx theme (`@astryxdesign/core`). No Tailwind, no `<style>` blocks.
+
+- Theme: `apps/site/src/theme/freeAtSeaTheme.ts`. After any edit run `pnpm --filter site theme` and commit
+  `src/theme/built/`. `<html data-astryx-theme="free-at-sea">` applies it; never use Astryx's `<Theme>` (runtime compiler).
+- Colours and fonts: consts in `src/theme/tokens.stylex.ts`, never hard-coded. Shared styles: `src/styles/{layout,text}.ts`.
+- StyleX doesn't compile `.astro`. Styles go in a sibling `Foo.styles.ts`, applied with `sx()` (`src/lib/sx.ts`):
+  `<div {...sx(styles.a, cond && styles.b)}>`. Calls that need compiling (`stylex.defaultMarker()`) go there too.
+- Media queries are literal string keys: `{ default: "1rem", "@media (min-width: 48rem)": "2rem" }`. Never a key
+  from a const: StyleX can't order those, so a phone value can beat a desktop one. `md` is `48rem`.
+- State set by scripts: `":is([data-x])"` keys on the element; on an ancestor, `stylex.when.ancestor("[open]")`
+  plus a marker.
+- `client:only` islands: their styles reach the stylesheet only if the server build imports the module, so add a bare
+  `import "@/components/Foo";` in the page frontmatter and check a production build, not just dev.
+- `stylex.mjs`: Astro builds server then client; only the server build may write the stylesheet. Dev serves atoms
+  at `/virtual:stylex.css`, linked from `Layout.astro` behind `import.meta.env.DEV`; a new layout needs the same.
+- Layers: `reset < astryx-base < astryx-theme < product`. Global overrides of the theme's element styles go in
+  `astryx-base` (unlayered or `product` rules beat StyleX atoms).
+- Needs Chrome 123+ / Safari 17.5+ / Firefox 146+: theme tokens live in `@scope`, older browsers get no colours.
+
 ### Types
 
 TypeScript 6 across the whole workspace, pinned once at the root — TS 7 cannot run `astro check` yet.
@@ -69,7 +95,6 @@ TypeScript 6 across the whole workspace, pinned once at the root — TS 7 cannot
   from the query string with no type argument. There is no runtime validation of responses, so `pnpm codegen`
   after any schema or GROQ change is what keeps types honest.
 - GROQ projections return `null` for absent fields, never `undefined`. Handle `null`.
-- Astro scopes class selectors but not `@keyframes` names; prefix keyframe names per component.
 - The content client sets `useCdn: false` on purpose: builds run seconds after a publish webhook, and the API CDN
   caches for ~60s.
 - `apps/site/wrangler.jsonc` is **not** the deployed config. The adapter regenerates

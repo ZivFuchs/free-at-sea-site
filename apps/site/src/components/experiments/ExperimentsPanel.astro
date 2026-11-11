@@ -1,0 +1,103 @@
+---
+/*
+ * Design-review overlay: one floating panel that switches every experiment group on the page.
+ * Not meant to ship. Delete with the last experiment.
+ */
+import { sx } from "@/lib/sx";
+import { groupMarker, styles } from "./ExperimentsPanel.styles";
+import type { ExperimentGroup } from "./types";
+
+interface Props {
+	groups: readonly ExperimentGroup[];
+}
+
+const { groups } = Astro.props;
+---
+
+<details data-experiments {...sx(styles.panel)}>
+	<summary {...sx(styles.eyebrow, styles.summary, styles.panelSummary)}>
+		Experiments
+		<span aria-hidden="true" {...sx(styles.chevron)}>▾</span>
+	</summary>
+
+	<div {...sx(styles.body)}>
+		{
+			groups.map(({ key, label, variants }, g) => (
+				<details name="experiments" open={g === 0} {...sx(groupMarker, styles.group)}>
+					<summary {...sx(styles.eyebrow, styles.summary, styles.groupSummary)}>
+						{label}
+						<span {...sx(styles.current)}>
+							<span data-experiment-current={key}>{variants[0]?.label}</span>
+							<span aria-hidden="true">▸</span>
+						</span>
+					</summary>
+					<div role="group" aria-label={label} {...sx(styles.tabs)}>
+						{variants.map(({ id, label }, i) => (
+							<button
+								type="button"
+								data-experiment-tab={key}
+								data-variant={id}
+								aria-pressed={i === 0 ? "true" : "false"}
+								{...sx(styles.eyebrow, styles.tab)}
+							>
+								{label}
+							</button>
+						))}
+					</div>
+					{variants.map(({ id, note }, i) => (
+						<p data-experiment-note={key} data-variant={id} hidden={i !== 0} {...sx(styles.note)}>
+							{note}
+						</p>
+					))}
+				</details>
+			))
+		}
+	</div>
+</details>
+
+<script>
+	const tabs = [...document.querySelectorAll<HTMLButtonElement>("[data-experiment-tab]")];
+	const notes = [...document.querySelectorAll<HTMLElement>("[data-experiment-note]")];
+	const params = () => new URLSearchParams(location.hash.slice(1));
+
+	const select = (group: string, id: string) => {
+		const current = document.querySelector<HTMLElement>(`[data-experiment-current="${group}"]`);
+		const variants = document.querySelectorAll<HTMLElement>(`[data-experiment="${group}"]`);
+		for (const el of variants) {
+			const on = el.dataset.variant === id;
+			el.hidden = !on;
+			el.toggleAttribute("data-active", on);
+			el.dispatchEvent(new CustomEvent(`${group}:${on ? "activate" : "deactivate"}`));
+		}
+		for (const tab of tabs) {
+			if (tab.dataset.experimentTab !== group) continue;
+			const on = tab.dataset.variant === id;
+			tab.setAttribute("aria-pressed", String(on));
+			if (on && current) current.textContent = tab.textContent;
+		}
+		for (const note of notes) {
+			if (note.dataset.experimentNote === group) note.hidden = note.dataset.variant !== id;
+		}
+		const next = params();
+		next.set(group, id);
+		history.replaceState(null, "", `#${next}`);
+	};
+
+	for (const tab of tabs) {
+		tab.addEventListener("click", () => {
+			const { experimentTab: group, variant } = tab.dataset;
+			if (group && variant) select(group, variant);
+		});
+	}
+
+	// `#hero=blocks&header=inlay` survives a reload, so variants under review stay put.
+	const wanted = params();
+	const groups = new Set(tabs.map((tab) => tab.dataset.experimentTab ?? ""));
+	for (const group of groups) {
+		const id = wanted.get(group);
+		const fallback = document.querySelector<HTMLElement>(`[data-experiment="${group}"][data-active]`);
+		const known = id && document.querySelector(`[data-experiment="${group}"][data-variant="${id}"]`);
+		const initial = known ? id : fallback?.dataset.variant;
+		if (initial) select(group, initial);
+	}
+</script>

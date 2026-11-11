@@ -1,0 +1,30 @@
+---
+/* Seabed directions for the footer, compared in place. Rendered as the `footer` group of the experiments panel. */
+import Experiment from "@/components/experiments/Experiment.astro";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+import Footer from "../Footer.astro";
+import { styles } from "./FooterShowcase.styles";
+import Shader from "./Shader.astro";
+import { FOOTER_VARIANTS } from "./variants";
+
+const site = await getSite();
+---
+
+{
+	FOOTER_VARIANTS.map(({ id, sources, resolution, wordmark, hud }, i) => (
+		<Experiment group="footer" id={id} active={i === 0}>
+			<Footer>
+				<Fragment slot="backdrop">
+					<Shader sources={sources} resolution={resolution} text={wordmark ? site.title.toUpperCase() : undefined} />
+					{hud && (
+						<div {...sx(layout.container, styles.hud)}>
+							{hud.map((line) => <span>{line}</span>)}
+						</div>
+					)}
+				</Fragment>
+			</Footer>
+		</Experiment>
+	))
+}

@@ -1,33 +1,16 @@
-@import "tailwindcss";
+@layer reset, astryx-base, astryx-theme, product;
+@import "@astryxdesign/core/reset.css";
+@import "../theme/built/free-at-sea.css";
 
-@theme {
-	--color-paper: oklch(0.985 0.003 230);
-	--color-ink: oklch(0.2 0.03 240);
-	--color-muted: oklch(0.48 0.02 240);
-	--color-accent: oklch(0.45 0.09 230);
-
-	--font-serif: Georgia, "Times New Roman", serif;
-
-	--container-prose: 68ch;
-	--container-page: 80rem;
-}
-
-@utility container-page {
-	margin-inline: auto;
-	width: 100%;
-	max-width: var(--container-page);
-	padding-inline: --spacing(6);
-	@media (width >= 48rem) {
-		padding-inline: --spacing(10);
+@layer reset {
+	html {
+		color-scheme: light;
 	}
-}
 
-@layer base {
 	body {
-		background-color: var(--color-paper);
-		color: var(--color-ink);
-		font-family: var(--font-serif);
-		-webkit-font-smoothing: antialiased;
+		background-color: var(--color-background-body);
+		color: var(--color-text-primary);
+		font-family: var(--font-family-body);
 	}
 
 	h1,
@@ -41,7 +24,16 @@
 	}
 
 	:focus-visible {
-		outline: 2px solid var(--color-accent);
+		outline: 2px solid var(--focus-outline-color);
 		outline-offset: 2px;
+	}
+}
+
+/* The theme colours and sizes headings/paragraphs directly; let them inherit. In astryx-base, not product:
+ * unlayered rules in `product` beat StyleX's sublayers. */
+@layer astryx-base {
+	:where(h1, h2, h3, h4, h5, h6, p, small) {
+		color: inherit;
+		font: inherit;
 	}
 }

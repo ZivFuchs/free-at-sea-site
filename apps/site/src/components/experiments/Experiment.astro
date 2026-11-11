@@ -1,0 +1,15 @@
+---
+/* Wraps one variant of an experiment group. Elements that must not be wrapped (a sticky header)
+ * carry the same two attributes themselves. */
+interface Props {
+	group: string;
+	id: string;
+	active?: boolean;
+}
+
+const { group, id, active = false } = Astro.props;
+---
+
+<div data-experiment={group} data-variant={id} data-active={active ? "" : undefined} hidden={!active}>
+	<slot />
+</div>

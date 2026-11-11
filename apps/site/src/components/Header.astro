@@ -1,0 +1,95 @@
+---
+import { NAV } from "@/lib/nav";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+import { text } from "@/styles/text";
+import { styles } from "./Header.styles";
+
+const site = await getSite();
+const { pathname } = Astro.url;
+const isCurrent = (href: string) => pathname.startsWith(href);
+---
+
+<header data-site-header {...sx(styles.header)}>
+	<div {...sx(layout.container, styles.bar)}>
+		<a href="/" {...sx(text.lg, text.wordmark)}>{site.title}</a>
+
+		<nav aria-label="Main" {...sx(styles.nav)}>
+			<ul {...sx(styles.navList)}>
+				{NAV.map(({ label, href }) => (
+					<li>
+						<a
+							href={href}
+							aria-current={isCurrent(href) ? "page" : undefined}
+							{...sx(text.sm, text.navLink, styles.link, isCurrent(href) && styles.linkCurrent)}
+						>
+							{label}
+						</a>
+					</li>
+				))}
+			</ul>
+		</nav>
+
+		<button type="button" popovertarget="site-menu" aria-label="Open menu" {...sx(styles.toggle, styles.open)}>
+			<span {...sx(styles.line)}></span>
+			<span {...sx(styles.line)}></span>
+		</button>
+	</div>
+</header>
+
+<nav id="site-menu" popover aria-label="Main" {...sx(styles.menu)}>
+	<div {...sx(layout.container, styles.bar)}>
+		<a href="/" {...sx(text.lg, text.wordmark)}>{site.title}</a>
+		<button
+			type="button"
+			popovertarget="site-menu"
+			popovertargetaction="hide"
+			aria-label="Close menu"
+			{...sx(styles.toggle, styles.close)}
+		>
+			<span {...sx(styles.line, styles.cross)}></span>
+			<span {...sx(styles.line, styles.cross, styles.crossAlt)}></span>
+		</button>
+	</div>
+	<ul {...sx(layout.container, styles.menuList)}>
+		{NAV.map(({ label, href }) => (
+			<li>
+				<a
+					href={href}
+					aria-current={isCurrent(href) ? "page" : undefined}
+					{...sx(text.xl3, isCurrent(href) && styles.menuLinkCurrent)}
+				>
+					{label}
+				</a>
+			</li>
+		))}
+	</ul>
+</nav>
+
+<script>
+	const header = document.querySelector<HTMLElement>("[data-site-header]");
+	const menu = document.getElementById("site-menu");
+	const THRESHOLD = 8;
+
+	if (header) {
+		let last = Math.max(0, scrollY);
+		addEventListener(
+			"scroll",
+			() => {
+				const y = Math.max(0, scrollY);
+				header.toggleAttribute("data-scrolled", y > 0);
+				if (Math.abs(y - last) < THRESHOLD) return;
+				const hide =
+					y > last &&
+					y > header.offsetHeight &&
+					!header.matches(":focus-within") &&
+					!menu?.matches(":popover-open");
+				header.toggleAttribute("data-hidden", hide);
+				last = y;
+			},
+			{ passive: true },
+		);
+		header.addEventListener("focusin", () => header.removeAttribute("data-hidden"));
+	}
+</script>

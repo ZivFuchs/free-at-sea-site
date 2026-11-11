@@ -1,0 +1,48 @@
+---
+import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
+import { sx } from "@/lib/sx";
+import { styles } from "./HeroMedia.styles";
+
+/* Full-bleed backdrop. Without `video`, the still drifts slowly as a stand-in for footage.
+ * `horizon` (0–1) pins the still's horizon to the same fraction of the frame at any aspect ratio. */
+
+interface Props {
+	image: ImageMetadata;
+	alt: string;
+	video?: string;
+	horizon?: number;
+}
+
+const { image, alt, video, horizon = 0.5 } = Astro.props;
+const position = `50% ${horizon * 100}%`;
+---
+
+<div {...sx(styles.frame)} style={{ "--horizon": horizon }}>
+	{
+		video ? (
+			<video
+				src={video}
+				autoplay
+				muted
+				loop
+				playsinline
+				aria-label={alt}
+				{...sx(styles.media)}
+				style={{ objectPosition: position }}
+			/>
+		) : (
+			<Image
+				src={image}
+				alt={alt}
+				widths={[768, 1280, 1920, 2880]}
+				sizes="100vw"
+				loading="eager"
+				fetchpriority="high"
+				{...sx(styles.media, styles.drift)}
+				style={{ objectPosition: position }}
+			/>
+		)
+	}
+</div>
+

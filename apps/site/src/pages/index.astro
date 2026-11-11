@@ -1,4 +1,9 @@
 ---
+import { EXPERIMENTS } from "astro:env/server";
+import ExperimentsPanel from "@/components/experiments/ExperimentsPanel.astro";
+import { footerExperiment } from "@/components/footer/experiments/variants";
+import { heroFontExperiment } from "@/components/hero/experiments/fonts";
+import HeroShowcase, { heroExperiment } from "@/components/hero/experiments/HeroShowcase.astro";
 import Layout from "@/layouts/Layout.astro";
 import { getSite } from "@/lib/site";
 
@@ -6,6 +11,6 @@ const site = await getSite();
 ---
 
 <Layout>
-	<h1 class="text-4xl font-bold md:text-6xl">{site.title}</h1>
-	<p class="mt-4 text-lg text-muted md:text-xl">{site.tagline}</p>
+	<HeroShowcase slot="hero" site={site} />
+	{(EXPERIMENTS || import.meta.env.DEV) && <ExperimentsPanel groups={[heroExperiment, heroFontExperiment, footerExperiment]} />}
 </Layout>

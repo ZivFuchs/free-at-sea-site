@@ -7,6 +7,8 @@ allowBuilds:
   sharp: true
   "@biomejs/biome": true
   workerd: true
+  "@astryxdesign/core": false
+  "@astryxdesign/cli": false
 
 overrides:
 
@@ -17,5 +19,5 @@ overrides:
   miniflare: "5.20260903.0-alpha"
   "@cloudflare/vite-plugin": "1.54.4"
 
-  # One Vite for Astro and @tailwindcss/vite; two copies make their Plugin types clash in astro check.
+  # One Vite for Astro and the StyleX/Astryx plugins; two copies make their Plugin types clash in astro check.
   vite: "8.3.0"
