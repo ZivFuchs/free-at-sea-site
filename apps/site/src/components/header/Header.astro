@@ -26,7 +26,7 @@ const sides = [
 ];
 ---
 
-<header data-site-header data-overlay={overlay ? "" : undefined} {...sx(styles.header, overlay && styles.overlay)} style={overlay ? `--solid: 0; --flip: 0;${darkTop ? " --top: var(--app-ink);" : ""}` : undefined}>
+<header data-site-header data-overlay={overlay ? "" : undefined} {...sx(styles.header, overlay && styles.overlay)} style={overlay ? `--solid: 0; --flip: 0; --mark: 0;${darkTop ? " --top: var(--app-ink);" : ""}` : undefined}>
 	<nav aria-label="Main" {...sx(layout.container, styles.bar)}>
 		{sides.map(({ items, side }, i) => (
 			<Fragment>
