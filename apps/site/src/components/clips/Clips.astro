@@ -18,7 +18,7 @@ const many = clips.length > 1;
 
 {
 	clips.length > 0 && (
-		<section aria-label="Clips" data-clips {...sx(styles.section)}>
+		<section id="clips" aria-label="Clips" data-clips {...sx(styles.section)}>
 			<div {...sx(layout.container)}>
 				<h2 {...sx(styles.heading)}>Clips</h2>
 
@@ -63,11 +63,11 @@ const many = clips.length > 1;
 				</div>
 			</div>
 
-			<dialog aria-label="Clip player" data-fill={sx(styles.fill).class} {...sx(styles.dialog)}>
+			<dialog aria-label="Clip player" tabindex="-1" data-fill={sx(styles.fill).class} {...sx(styles.dialog)}>
 				<div data-dismiss {...sx(styles.room)}>
-					<div data-dismiss {...sx(styles.bar)}>
+					<div data-dismiss data-overlay {...sx(styles.bar, styles.chrome)}>
 						<p {...sx(styles.kicker)}>Free at Sea · Clips</p>
-						<button type="button" data-close {...sx(styles.close)}>
+						<button type="button" data-close data-overlay {...sx(styles.close, styles.chromeHit)}>
 							Close
 							<svg viewBox="0 0 10 10" aria-hidden="true" {...sx(styles.cross)}>
 								<path d="M1 1l8 8M9 1l-8 8" fill="none" stroke="currentColor" stroke-width="1.25" />
@@ -86,13 +86,13 @@ const many = clips.length > 1;
 									<p data-caption {...sx(styles.nowCaption)} />
 								</div>
 								{many && (
-									<div {...sx(styles.steps)}>
-										<button type="button" data-step="-1" aria-label="Previous clip" {...sx(styles.step)}>
+									<div data-overlay {...sx(styles.steps, styles.chrome)}>
+										<button type="button" data-step="-1" aria-label="Previous clip" data-overlay {...sx(styles.step, styles.chromeHit)}>
 											<svg viewBox="0 0 16 16" aria-hidden="true" {...sx(styles.arrow)}>
 												<path d="M15 8H2M7 3L2 8l5 5" fill="none" stroke="currentColor" stroke-width="1.25" />
 											</svg>
 										</button>
-										<button type="button" data-step="1" aria-label="Next clip" {...sx(styles.step)}>
+										<button type="button" data-step="1" aria-label="Next clip" data-overlay {...sx(styles.step, styles.chromeHit)}>
 											<svg viewBox="0 0 16 16" aria-hidden="true" {...sx(styles.arrow)}>
 												<path d="M1 8h13M9 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.25" />
 											</svg>
@@ -153,16 +153,61 @@ const many = clips.length > 1;
 			frame.style.animationName = "";
 		};
 
+		/** Matches the styles' landscape-phone queries: full-screen video, controls on demand. */
+		const immersive = matchMedia(
+			"(pointer: coarse) and (orientation: portrait) and (max-width: 47.99rem), (orientation: landscape) and (max-height: 32rem)",
+		);
+		let hideTimer: ReturnType<typeof setTimeout> | undefined;
+		const overlays = dialog.querySelectorAll("[data-overlay]");
+		const setChrome = (on: boolean) => {
+			for (const el of overlays) el.toggleAttribute("data-chrome", on);
+		};
+		const reveal = () => {
+			setChrome(true);
+			clearTimeout(hideTimer);
+			hideTimer = setTimeout(() => {
+				if (dialog.matches(":has(:focus-visible)")) return reveal();
+				setChrome(false);
+				// Pull focus back from the player so the next tap on it blurs the window again.
+				if (document.activeElement instanceof HTMLIFrameElement) dialog.focus({ preventScroll: true });
+			}, CHROME_MS);
+		};
+		const CHROME_MS = 2500;
+		dialog.addEventListener("pointermove", reveal);
+		dialog.addEventListener("focusin", reveal);
+		// Taps on the cross-origin player never reach this page; they only move focus into it.
+		addEventListener("blur", () => {
+			if (dialog.open && document.activeElement instanceof HTMLIFrameElement) reveal();
+		});
+
+		/** Touch devices: fullscreen, then lock to landscape. Before `showModal`, so the dialog stacks above it. */
+		const fullscreen = async () => {
+			if (!matchMedia("(pointer: coarse)").matches) return false;
+			return page
+				.requestFullscreen?.({ navigationUI: "hide" })
+				.then(() => true)
+				.catch(() => false);
+		};
+		const lockLandscape = () =>
+			(screen.orientation as ScreenOrientation & { lock?: (to: "landscape") => Promise<void> })
+				.lock?.("landscape")
+				.catch(() => {});
+
 		const step = (by: number) => show((current + by + tiles.length) % tiles.length);
 
 		tiles.forEach((tile, i) => {
-			tile.addEventListener("click", (event) => {
+			tile.addEventListener("click", async (event) => {
 				if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
 				event.preventDefault();
 				opener = tile;
 				page.style.overflow = "hidden";
+				const full = await fullscreen();
 				dialog.showModal();
+				// Focus on the close button would hold the controls open.
+				if (immersive.matches) dialog.focus();
 				show(i);
+				reveal();
+				if (full) lockLandscape();
 			});
 		});
 
@@ -170,7 +215,9 @@ const many = clips.length > 1;
 			if (!(event.target instanceof Element)) return;
 			const button = event.target.closest<HTMLElement>("[data-step], [data-close]");
 			if (button?.dataset.step) step(Number(button.dataset.step));
-			else if (button || event.target === dialog || event.target.hasAttribute("data-dismiss")) dialog.close();
+			else if (button) dialog.close();
+			else if (immersive.matches) reveal();
+			else if (event.target === dialog || event.target.hasAttribute("data-dismiss")) dialog.close();
 		});
 
 		dialog.addEventListener("keydown", (event) => {
@@ -183,6 +230,8 @@ const many = clips.length > 1;
 
 		dialog.addEventListener("close", () => {
 			clear();
+			clearTimeout(hideTimer);
+			if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
 			page.style.overflow = "";
 			opener?.focus();
 			opener = undefined;

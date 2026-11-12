@@ -1,5 +1,5 @@
 import * as stylex from "@stylexjs/stylex";
-import { color } from "@/theme/tokens.stylex";
+import { color, font } from "@/theme/tokens.stylex";
 
 const fadeIn = stylex.keyframes({ from: { opacity: 0 } });
 
@@ -36,7 +36,8 @@ export const styles = stylex.create({
 	},
 	title: {
 		marginTop: "0.1em",
-		fontSize: "min(calc(19vw * var(--size)), calc(22svh * var(--size)))",
+		fontFamily: font.hero,
+		fontSize: "min(13.3vw, 15.4svh)",
 		lineHeight: 1,
 		whiteSpace: "nowrap",
 		textTransform: "uppercase",

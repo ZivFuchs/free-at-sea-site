@@ -1,0 +1,120 @@
+---
+import { getHome } from "@/lib/home";
+import { NAV } from "@/lib/nav";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+import { styles } from "./Header.styles";
+
+/** Centred wordmark, nav split either side; the bottom hairline fills with page scroll (the tide line). */
+interface Props {
+	/** Overlays the hero below: transparent until scrolled. */
+	overlay?: boolean;
+}
+
+const { overlay = false } = Astro.props;
+const menuId = "site-menu";
+const site = await getSite();
+/** Over a light hero top, start with dark text; it turns light as the bar fades in. */
+const darkTop = overlay && (await getHome()).heroBackdrop === "light";
+const { pathname } = Astro.url;
+const isCurrent = (href: string) => pathname.startsWith(href);
+const split = Math.floor(NAV.length / 2);
+const sides = [
+	{ items: NAV.slice(0, split), side: styles.left },
+	{ items: NAV.slice(split), side: styles.right },
+];
+---
+
+<header data-site-header data-overlay={overlay ? "" : undefined} {...sx(styles.header, overlay && styles.overlay)} style={overlay ? `--solid: 0; --flip: 0;${darkTop ? " --top: var(--app-ink);" : ""}` : undefined}>
+	<nav aria-label="Main" {...sx(layout.container, styles.bar)}>
+		{sides.map(({ items, side }, i) => (
+			<Fragment>
+				{i === 1 && (
+					<a href="/" data-mark {...sx(styles.wordmark)}>
+						<span data-mark-text {...sx(styles.markText)}>{site.title}</span>
+					</a>
+				)}
+				<ul {...sx(styles.side, side)}>
+					{items.map(({ label, href }) => (
+						<li>
+							<a href={href} aria-current={isCurrent(href) ? "page" : undefined} {...sx(styles.link, isCurrent(href) && styles.linkCurrent)}>
+								{label}
+							</a>
+						</li>
+					))}
+				</ul>
+			</Fragment>
+		))}
+		<button type="button" popovertarget={menuId} aria-label="Open menu" {...sx(styles.toggle, styles.open)}>
+			<span {...sx(styles.line)}></span>
+			<span {...sx(styles.line, styles.lineShort)}></span>
+		</button>
+	</nav>
+	<div aria-hidden="true" {...sx(styles.track)}><div {...sx(styles.tide)}></div></div>
+</header>
+
+<nav id={menuId} popover aria-label="Main" {...sx(styles.menu)}>
+	<div {...sx(layout.container, styles.bar)}>
+		<a href="/" {...sx(styles.wordmark)}>{site.title}</a>
+		<button type="button" popovertarget={menuId} popovertargetaction="hide" aria-label="Close menu" {...sx(styles.toggle, styles.close)}>
+			<span {...sx(styles.line, styles.cross)}></span>
+			<span {...sx(styles.line, styles.cross, styles.crossAlt)}></span>
+		</button>
+	</div>
+	<ul {...sx(layout.container, styles.menuList)}>
+		{NAV.map(({ label, href }) => (
+			<li>
+				<a href={href} aria-current={isCurrent(href) ? "page" : undefined} {...sx(styles.menuLink, isCurrent(href) && styles.menuLinkCurrent)}>
+					{label}
+				</a>
+			</li>
+		))}
+	</ul>
+</nav>
+
+<script>
+	const header = document.querySelector<HTMLElement>("[data-site-header]");
+	if (header) {
+		const overlay = header.hasAttribute("data-overlay");
+		const title = overlay ? document.querySelector<HTMLElement>("[data-hero-title]") : null;
+		/** Hero copy that fades out as the wordmark fades in: the title and its tagline. */
+		const fading = overlay ? [...document.querySelectorAll<HTMLElement>("[data-hero-fade]")] : [];
+		const mark = header.querySelector<HTMLElement>("[data-mark]");
+		const ease = (t: number) => t * t * (3 - 2 * t);
+		/** Stretch of the bar fade-in over which text swaps tone: where the glass starts to outweigh a light backdrop. */
+		const FLIP_FROM = 0.25;
+		const FLIP_SPAN = 0.25;
+		let frame = 0;
+
+		const centre = (el: HTMLElement) => {
+			const r = el.getBoundingClientRect();
+			return r.top + r.height / 2;
+		};
+
+		const update = () => {
+			frame = 0;
+			const y = Math.max(0, scrollY);
+			const max = document.documentElement.scrollHeight - innerHeight;
+			header.style.setProperty("--tide", String(max > 0 ? Math.min(y / max, 1) : 0));
+			if (!overlay) return;
+			const solid = Math.min(y / Math.max(header.offsetHeight, innerHeight * 0.3), 1);
+			header.style.setProperty("--solid", String(solid));
+			header.style.setProperty("--flip", String(ease(Math.min(Math.max((solid - FLIP_FROM) / FLIP_SPAN, 0), 1))));
+			if (!title || !mark) return;
+
+			// One eased progress, from the top until the hero title's centre reaches the wordmark's, crossfades the two.
+			const reach = Math.max(1, centre(title) + y - centre(mark));
+			const p = ease(Math.min(y / reach, 1));
+			for (const el of fading) el.style.opacity = String(0.85 * (1 - p));
+			header.style.setProperty("--mark", String(p));
+		};
+
+		const queue = () => (frame ||= requestAnimationFrame(update));
+		update();
+		addEventListener("scroll", queue, { passive: true });
+		addEventListener("resize", queue);
+		// Late CSS and font swaps resize the hero title.
+		if (title) new ResizeObserver(queue).observe(title);
+	}
+</script>

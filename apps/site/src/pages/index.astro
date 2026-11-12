@@ -3,8 +3,7 @@ import { EXPERIMENTS } from "astro:env/server";
 import Clips from "@/components/clips/Clips.astro";
 import ExperimentsPanel from "@/components/experiments/ExperimentsPanel.astro";
 import { footerExperiment } from "@/components/footer/experiments/variants";
-import { heroFontExperiment } from "@/components/hero/experiments/fonts";
-import HeroShowcase, { heroExperiment } from "@/components/hero/experiments/HeroShowcase.astro";
+import Waterline from "@/components/hero/Waterline.astro";
 import Layout from "@/layouts/Layout.astro";
 import { getClips } from "@/lib/clips";
 import { getHome } from "@/lib/home";
@@ -14,7 +13,7 @@ const [site, home, clips] = await Promise.all([getSite(), getHome(), getClips()]
 ---
 
 <Layout>
-	<HeroShowcase slot="hero" site={site} home={home} />
+	<Waterline slot="hero" site={site} home={home} />
 	<Clips slot="sections" clips={clips} />
-	{(EXPERIMENTS || import.meta.env.DEV) && <ExperimentsPanel slot="sections" groups={[heroExperiment, heroFontExperiment, footerExperiment]} />}
+	{(EXPERIMENTS || import.meta.env.DEV) && <ExperimentsPanel slot="sections" groups={[footerExperiment]} />}
 </Layout>

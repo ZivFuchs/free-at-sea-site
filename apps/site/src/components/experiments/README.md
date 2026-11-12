@@ -12,14 +12,15 @@ The panel should render only when `EXPERIMENTS` is set (staging, via `wrangler.j
 ---
 import { EXPERIMENTS } from "astro:env/server";
 import ExperimentsPanel from "@/components/experiments/ExperimentsPanel.astro";
-import HeroShowcase, { heroExperiment } from "@/components/hero/experiments/HeroShowcase.astro";
+import FooterShowcase from "@/components/footer/experiments/FooterShowcase.astro";
+import { footerExperiment } from "@/components/footer/experiments/variants";
 ---
 
-<HeroShowcase />
-{(EXPERIMENTS || import.meta.env.DEV) && <ExperimentsPanel groups={[heroExperiment]} />}
+<FooterShowcase />
+{(EXPERIMENTS || import.meta.env.DEV) && <ExperimentsPanel groups={[footerExperiment]} />}
 ```
 
 This folder is only the scaffolding. Each group lives in an `experiments/` folder next to the
-component it varies (e.g. `hero/experiments/`), with the winner one level up once resolved. To add
+component it varies (e.g. `footer/experiments/`), with the winner one level up once resolved. To add
 a group, export an `ExperimentGroup` from a showcase in that folder, render its variants with the
 attributes above, and pass the group to the panel on the page.

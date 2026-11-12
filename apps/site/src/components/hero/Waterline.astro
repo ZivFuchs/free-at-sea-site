@@ -1,11 +1,8 @@
 ---
-import { Font } from "astro:assets";
 import still from "@/assets/hero/barge-from-afar.jpg";
-import Experiment from "@/components/experiments/Experiment.astro";
 import type { Home } from "@/lib/home";
 import type { SiteSettings } from "@/lib/site";
 import { sx } from "@/lib/sx";
-import { HERO_FONTS } from "./fonts";
 import HeroMedia from "./HeroMedia.astro";
 import { heroMarker, styles } from "./Waterline.styles";
 
@@ -33,22 +30,9 @@ const HORIZON = 0.178;
 	/>
 
 	<div {...sx(styles.copy)}>
-		{
-			HERO_FONTS.map(({ id, cssVariable, size, tracking }, i) => (
-				<Experiment group="hero-font" id={id} active={i === 0}>
-					<h1
-						{...sx(styles.text, styles.title)}
-						style={{ fontFamily: `var(${cssVariable})`, letterSpacing: tracking, "--size": size }}
-					>
-						{site.title}
-					</h1>
-				</Experiment>
-			))
-		}
-		<p {...sx(styles.text, styles.tagline)}>{site.tagline}</p>
+		<h1 data-hero-title data-hero-fade {...sx(styles.text, styles.title)}>{site.title}</h1>
+		<p data-hero-fade {...sx(styles.text, styles.tagline)}>{site.tagline}</p>
 	</div>
-
-	{HERO_FONTS.slice(1).map(({ cssVariable }) => <Font cssVariable={cssVariable} />)}
 </section>
 
 <script>

@@ -2,7 +2,7 @@
 import { Font } from "astro:assets";
 import { NOINDEX } from "astro:env/server";
 import FooterShowcase from "@/components/footer/experiments/FooterShowcase.astro";
-import Header from "@/components/Header.astro";
+import Header from "@/components/header/Header.astro";
 import { getSite } from "@/lib/site";
 import { sx } from "@/lib/sx";
 import "@/styles/global.css";
@@ -32,6 +32,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
 		{(noindex || NOINDEX) && <meta name="robots" content="noindex" />}
 		<link rel="sitemap" href="/sitemap-index.xml" />
 		<Font cssVariable="--font-anton" preload />
+		<Font cssVariable="--font-playfair" preload />
 		{
 			import.meta.env.DEV && (
 				<>

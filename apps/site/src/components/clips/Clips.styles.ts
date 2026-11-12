@@ -207,18 +207,39 @@ export const styles = stylex.create({
 	},
 	triangle: { width: "30%", marginLeft: "8%" },
 
+	/** Phones in portrait get the player turned sideways (iOS can't lock orientation); sizes inside use `cq*` units. */
 	dialog: {
 		position: "fixed",
-		inset: 0,
-		width: "100%",
-		height: "100%",
+		inset: {
+			default: 0,
+			"@media (pointer: coarse) and (orientation: portrait) and (max-width: 47.99rem)":
+				"0 auto auto 100%",
+		},
+		width: {
+			default: "100%",
+			"@media (pointer: coarse) and (orientation: portrait) and (max-width: 47.99rem)": "100dvh",
+		},
+		height: {
+			default: "100%",
+			"@media (pointer: coarse) and (orientation: portrait) and (max-width: 47.99rem)": "100dvw",
+		},
+		rotate: {
+			default: null,
+			"@media (pointer: coarse) and (orientation: portrait) and (max-width: 47.99rem)": "90deg",
+		},
+		transformOrigin: "top left",
+		containerType: "size",
 		maxWidth: "none",
 		maxHeight: "none",
 		margin: 0,
 		padding: 0,
 		borderWidth: 0,
 		overflowX: "hidden",
-		overflowY: "auto",
+		overflowY: {
+			default: "auto",
+			"@media (pointer: coarse) and (orientation: portrait) and (max-width: 47.99rem), (orientation: landscape) and (max-height: 32rem)":
+				"hidden",
+		},
 		overscrollBehavior: "contain",
 		backgroundColor: ABYSS,
 		color: color.paper,
@@ -231,11 +252,34 @@ export const styles = stylex.create({
 		"::backdrop": { backgroundColor: ABYSS },
 	},
 	room: {
-		display: "grid",
+		display: {
+			default: "grid",
+			"@media (pointer: coarse) and (orientation: portrait) and (max-width: 47.99rem), (orientation: landscape) and (max-height: 32rem)":
+				"block",
+		},
 		gridTemplateRows: "auto minmax(0, 1fr)",
+		position: "relative",
 		minHeight: "100%",
+		height: {
+			default: null,
+			"@media (pointer: coarse) and (orientation: portrait) and (max-width: 47.99rem), (orientation: landscape) and (max-height: 32rem)":
+				"100%",
+		},
 	},
 	bar: {
+		position: {
+			default: null,
+			"@media (pointer: coarse) and (orientation: portrait) and (max-width: 47.99rem), (orientation: landscape) and (max-height: 32rem)":
+				"absolute",
+		},
+		insetBlockStart: 0,
+		insetInlineEnd: 0,
+		zIndex: 1,
+		pointerEvents: {
+			default: null,
+			"@media (pointer: coarse) and (orientation: portrait) and (max-width: 47.99rem), (orientation: landscape) and (max-height: 32rem)":
+				"none",
+		},
 		display: "flex",
 		alignItems: "center",
 		justifyContent: "space-between",
@@ -243,7 +287,32 @@ export const styles = stylex.create({
 		paddingBlock: { default: "1rem", "@media (min-width: 48rem)": "1.5rem" },
 		paddingInline: { default: "1.5rem", "@media (min-width: 48rem)": "2.5rem" },
 	},
-	kicker: { ...label, color: color.paper70 },
+	/** Landscape phones: controls hidden until the script sets `data-chrome` (tap, hover, focus). */
+	chrome: {
+		opacity: {
+			default: null,
+			"@media (pointer: coarse) and (orientation: portrait) and (max-width: 47.99rem), (orientation: landscape) and (max-height: 32rem)":
+				{ default: 0, ":is([data-chrome])": 1 },
+		},
+		transitionProperty: "opacity",
+		transitionDuration: "300ms",
+	},
+	chromeHit: {
+		pointerEvents: {
+			default: null,
+			"@media (pointer: coarse) and (orientation: portrait) and (max-width: 47.99rem), (orientation: landscape) and (max-height: 32rem)":
+				{ default: "none", ":is([data-chrome])": "auto" },
+		},
+	},
+	kicker: {
+		...label,
+		color: color.paper70,
+		display: {
+			default: null,
+			"@media (pointer: coarse) and (orientation: portrait) and (max-width: 47.99rem), (orientation: landscape) and (max-height: 32rem)":
+				"none",
+		},
+	},
 	close: {
 		...button,
 		...label,
@@ -262,15 +331,37 @@ export const styles = stylex.create({
 		paddingBottom: { default: "2rem", "@media (min-width: 48rem)": "2.5rem" },
 		paddingInline: { default: 0, "@media (min-width: 48rem)": "2.5rem" },
 	},
-	/** As wide as the height allows a 16:9 frame plus its caption, never narrower than a phone. */
+	/** As wide as the height allows a 16:9 frame plus its caption, never narrower than a phone. Landscape phones: fills the screen. */
 	column: {
-		width: "max(min(100%, 22rem), min(100%, calc((100dvh - 15rem) * 16 / 9)))",
+		position: {
+			default: null,
+			"@media (pointer: coarse) and (orientation: portrait) and (max-width: 47.99rem), (orientation: landscape) and (max-height: 32rem)":
+				"absolute",
+		},
+		inset: 0,
+		width: {
+			default: "max(min(100%, 22rem), min(100%, calc((100cqh - 15rem) * 16 / 9)))",
+			"@media (pointer: coarse) and (orientation: portrait) and (max-width: 47.99rem), (orientation: landscape) and (max-height: 32rem)":
+				"100%",
+		},
 		display: "flex",
 		flexDirection: "column",
+		justifyContent: "center",
+		alignItems: {
+			default: null,
+			"@media (pointer: coarse) and (orientation: portrait) and (max-width: 47.99rem), (orientation: landscape) and (max-height: 32rem)":
+				"center",
+		},
 		gap: { default: "1.25rem", "@media (min-width: 48rem)": "1.5rem" },
 	},
 	frame: {
 		position: "relative",
+		flexShrink: 0,
+		width: {
+			default: null,
+			"@media (pointer: coarse) and (orientation: portrait) and (max-width: 47.99rem), (orientation: landscape) and (max-height: 32rem)":
+				"min(100cqw, calc(100cqh * 16 / 9))",
+		},
 		aspectRatio: "16 / 9",
 		overflow: "hidden",
 		backgroundColor: "black",
@@ -289,8 +380,28 @@ export const styles = stylex.create({
 		justifyContent: "space-between",
 		gap: "1.5rem",
 		paddingInline: { default: "1.5rem", "@media (min-width: 48rem)": 0 },
+		position: {
+			default: null,
+			"@media (pointer: coarse) and (orientation: portrait) and (max-width: 47.99rem), (orientation: landscape) and (max-height: 32rem)":
+				"absolute",
+		},
+		inset: 0,
+		pointerEvents: {
+			default: null,
+			"@media (pointer: coarse) and (orientation: portrait) and (max-width: 47.99rem), (orientation: landscape) and (max-height: 32rem)":
+				"none",
+		},
 	},
-	text: { minWidth: 0, display: "flex", flexDirection: "column", gap: "0.5rem" },
+	text: {
+		minWidth: 0,
+		display: {
+			default: "flex",
+			"@media (pointer: coarse) and (orientation: portrait) and (max-width: 47.99rem), (orientation: landscape) and (max-height: 32rem)":
+				"none",
+		},
+		flexDirection: "column",
+		gap: "0.5rem",
+	},
 	position: { ...label, color: color.paper50 },
 	nowTitle: {
 		fontFamily: font.display,
@@ -307,7 +418,28 @@ export const styles = stylex.create({
 		lineHeight: 1.55,
 		":empty": { display: "none" },
 	},
-	steps: { flexShrink: 0, display: "flex", gap: "0.5rem" },
+	steps: {
+		flexShrink: 0,
+		display: "flex",
+		gap: "0.5rem",
+		position: {
+			default: null,
+			"@media (pointer: coarse) and (orientation: portrait) and (max-width: 47.99rem), (orientation: landscape) and (max-height: 32rem)":
+				"absolute",
+		},
+		inset: 0,
+		alignItems: "center",
+		justifyContent: {
+			default: null,
+			"@media (pointer: coarse) and (orientation: portrait) and (max-width: 47.99rem), (orientation: landscape) and (max-height: 32rem)":
+				"space-between",
+		},
+		paddingInline: {
+			default: null,
+			"@media (pointer: coarse) and (orientation: portrait) and (max-width: 47.99rem), (orientation: landscape) and (max-height: 32rem)":
+				"1rem",
+		},
+	},
 	step: { ...button, display: "grid", placeItems: "center", width: "2.75rem", height: "2.75rem" },
 	arrow: { width: "1rem", height: "1rem" },
 });

@@ -6,11 +6,17 @@ export const color = stylex.defineConsts({
 	muted: "var(--app-muted)",
 	accent: "var(--app-accent)",
 	ink10: "color-mix(in oklab, var(--app-ink) 10%, transparent)",
+	paper12: "color-mix(in oklab, var(--app-paper) 12%, transparent)",
 	paper15: "color-mix(in oklab, var(--app-paper) 15%, transparent)",
 	paper45: "color-mix(in oklab, var(--app-paper) 45%, transparent)",
 	paper50: "color-mix(in oklab, var(--app-paper) 50%, transparent)",
+	paper65: "color-mix(in oklab, var(--app-paper) 65%, transparent)",
 	paper70: "color-mix(in oklab, var(--app-paper) 70%, transparent)",
 	paper85: "color-mix(in oklab, var(--app-paper) 85%, transparent)",
+	/** Deep navy glass: the scrolled header. */
+	abyss90: "oklch(0.2 0.045 245 / 0.9)",
+	/** Pale aqua highlight on abyss. */
+	aqua: "oklch(0.8 0.08 215)",
 });
 
 export const font = stylex.defineConsts({
@@ -18,4 +24,5 @@ export const font = stylex.defineConsts({
 	sans: "var(--app-font-sans)",
 	mono: "var(--font-family-code)",
 	display: "var(--app-font-display)",
+	hero: "var(--font-playfair), Georgia, serif",
 });

@@ -23,31 +23,11 @@ export default defineConfig({
 	},
 	fonts: [
 		{ provider: fontProviders.google(), name: "Anton", cssVariable: "--font-anton" },
-		// Hero font experiment candidates
-		{ provider: fontProviders.google(), name: "Bebas Neue", cssVariable: "--font-bebas" },
-		{
-			provider: fontProviders.google(),
-			name: "Big Shoulders Display",
-			cssVariable: "--font-big-shoulders",
-			weights: [900],
-		},
-		{
-			provider: fontProviders.google(),
-			name: "Cinzel",
-			cssVariable: "--font-cinzel",
-			weights: [700],
-		},
 		{
 			provider: fontProviders.google(),
 			name: "Playfair Display",
 			cssVariable: "--font-playfair",
 			weights: [900],
-		},
-		{
-			provider: fontProviders.google(),
-			name: "Unbounded",
-			cssVariable: "--font-unbounded",
-			weights: [800],
 		},
 	],
 	integrations: [react(), sitemap()],
