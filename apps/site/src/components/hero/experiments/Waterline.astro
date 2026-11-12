@@ -2,33 +2,42 @@
 import { Font } from "astro:assets";
 import still from "@/assets/hero/barge-from-afar.jpg";
 import Experiment from "@/components/experiments/Experiment.astro";
+import type { Home } from "@/lib/home";
 import type { SiteSettings } from "@/lib/site";
 import { sx } from "@/lib/sx";
 import { HERO_FONTS } from "./fonts";
 import HeroMedia from "./HeroMedia.astro";
-import { styles } from "./Waterline.styles";
+import { heroMarker, styles } from "./Waterline.styles";
 
 interface Props {
 	site: SiteSettings;
+	home: Home;
 }
 
-const { site } = Astro.props;
+const { site, home } = Astro.props;
 const HORIZON = 0.178;
 ---
 
 <section
 	aria-label="Intro"
-	{...sx(styles.section)}
+	data-hero
+	{...sx(heroMarker, styles.section)}
 	style={{ "--horizon": HORIZON }}
 >
-	<HeroMedia image={still} alt="The barge alone on open sea, seen from far above" horizon={HORIZON} />
+	<HeroMedia
+		image={still}
+		alt="The barge alone on open sea, seen from far above"
+		video={home.heroVideo}
+		poster={home.heroPoster}
+		horizon={HORIZON}
+	/>
 
 	<div {...sx(styles.copy)}>
 		{
 			HERO_FONTS.map(({ id, cssVariable, size, tracking }, i) => (
 				<Experiment group="hero-font" id={id} active={i === 0}>
 					<h1
-						{...sx(styles.submerged, styles.title)}
+						{...sx(styles.text, styles.title)}
 						style={{ fontFamily: `var(${cssVariable})`, letterSpacing: tracking, "--size": size }}
 					>
 						{site.title}
@@ -36,18 +45,19 @@ const HORIZON = 0.178;
 				</Experiment>
 			))
 		}
-		<p {...sx(styles.submerged, styles.tagline)}>{site.tagline}</p>
+		<p {...sx(styles.text, styles.tagline)}>{site.tagline}</p>
 	</div>
 
 	{HERO_FONTS.slice(1).map(({ cssVariable }) => <Font cssVariable={cssVariable} />)}
-
-	<svg aria-hidden="true" {...sx(styles.filter)}>
-		<filter id="waterline-ripple">
-			<feTurbulence type="fractalNoise" baseFrequency="0.002 0.05" numOctaves="1" seed="3">
-				<animate attributeName="baseFrequency" dur="9s" values="0.002 0.05;0.003 0.07;0.002 0.05" repeatCount="indefinite"></animate>
-			</feTurbulence>
-			<feDisplacementMap in="SourceGraphic" scale="7"></feDisplacementMap>
-		</filter>
-	</svg>
 </section>
 
+<script>
+	const READY_TIMEOUT = 2500;
+	for (const hero of document.querySelectorAll<HTMLElement>("[data-hero]")) {
+		const backdrop = hero.querySelector("img");
+		Promise.race([
+			Promise.all([document.fonts.ready, backdrop?.decode().catch(() => {})]),
+			new Promise((resolve) => setTimeout(resolve, READY_TIMEOUT)),
+		]).then(() => hero.setAttribute("data-ready", ""));
+	}
+</script>

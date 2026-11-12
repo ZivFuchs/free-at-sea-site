@@ -4,7 +4,7 @@ import { structureTool } from "sanity/structure";
 import { schemaTypes } from "./schemaTypes";
 
 /** Types reached through a fixed document id, never created ad hoc. */
-const singletons = new Set(["siteSettings"]);
+const singletons = new Set(["siteSettings", "homePage"]);
 
 export default defineConfig({
 	name: "default",
@@ -23,6 +23,10 @@ export default defineConfig({
 							.title("Site Settings")
 							.id("siteSettings")
 							.child(S.document().schemaType("siteSettings").documentId("siteSettings")),
+						S.listItem()
+							.title("Homepage")
+							.id("homePage")
+							.child(S.document().schemaType("homePage").documentId("homePage")),
 						S.divider(),
 						...S.documentTypeListItems().filter((item) => !singletons.has(item.getId() ?? "")),
 					]),

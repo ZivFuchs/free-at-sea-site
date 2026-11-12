@@ -5,7 +5,7 @@ import {
 	parseVideoUrl,
 	type VideoRef,
 } from "@fas/content";
-import { createImageUrlBuilder } from "@sanity/image-url";
+import { image } from "@/lib/image";
 import { sanity } from "@/lib/sanity";
 
 type ClipDoc = CLIPS_QUERY_RESULT[number];
@@ -15,7 +15,6 @@ export interface Clip extends Pick<ClipDoc, "_id" | "title" | "url" | "caption">
 	thumbnail: string | null;
 }
 
-const image = createImageUrlBuilder(sanity);
 const THUMB_WIDTH = 1280;
 
 const ok = async (url: string) =>

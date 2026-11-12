@@ -57,6 +57,34 @@ export type SanityImageHotspot = {
   width: number;
 };
 
+export type SanityFileAssetReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "sanity.fileAsset";
+};
+
+export type HomePage = {
+  _id: string;
+  _type: "homePage";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  heroVideo?: {
+    asset?: SanityFileAssetReference;
+    media?: unknown;
+    _type: "file";
+  };
+  heroPoster?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    _type: "image";
+  };
+  heroPosterFor?: string;
+};
+
 export type SiteSettings = {
   _id: string;
   _type: "siteSettings";
@@ -177,6 +205,8 @@ export type AllSanitySchemaTypes =
   | Clip
   | SanityImageCrop
   | SanityImageHotspot
+  | SanityFileAssetReference
+  | HomePage
   | SiteSettings
   | SanityImagePaletteSwatch
   | SanityImagePalette
@@ -196,6 +226,20 @@ export type SITE_SETTINGS_QUERY_RESULT = {
   tagline: string;
   description: string;
   email: string | null;
+} | null;
+
+// Source: ../../packages/content/src/queries.ts
+// Variable: HOME_PAGE_QUERY
+// Query: *[_type == "homePage" && _id == "homePage"][0]{	"heroVideo": heroVideo.asset->url,	heroPoster}
+export type HOME_PAGE_QUERY_RESULT = {
+  heroVideo: string | null;
+  heroPoster: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    _type: "image";
+  } | null;
 } | null;
 
 // Source: ../../packages/content/src/queries.ts
@@ -219,6 +263,7 @@ export type CLIPS_QUERY_RESULT = Array<{
 declare global {
   interface SanityQueries {
     '*[_type == "siteSettings" && _id == "siteSettings"][0]{\n\ttitle, tagline, description, email\n}': SITE_SETTINGS_QUERY_RESULT;
+    '*[_type == "homePage" && _id == "homePage"][0]{\n\t"heroVideo": heroVideo.asset->url,\n\theroPoster\n}': HOME_PAGE_QUERY_RESULT;
     '*[_type == "clip" && defined(url)] | order(order asc, _createdAt desc){\n\t_id, title, url, caption, thumbnail\n}': CLIPS_QUERY_RESULT;
   }
 }
