@@ -40,7 +40,6 @@ jobs:
       - run: pnpm --filter site build:staging
         env:
           SANITY_API_READ_TOKEN: ${{ secrets.SANITY_API_READ_TOKEN }}
-      # Password gate in front of the static build (apps/site/wrangler.staging.jsonc).
       - run: pnpm --filter site run deploy:staging
 
   production:

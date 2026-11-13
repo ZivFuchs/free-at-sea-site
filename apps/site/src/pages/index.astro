@@ -11,7 +11,6 @@ import Layout from "@/layouts/Layout.astro";
 import { getClips } from "@/lib/clips";
 import { getDonations, sampleDonations } from "@/lib/donations";
 import { getHome } from "@/lib/home";
-import { SHOW_NEWSLETTER } from "@/lib/newsletter";
 import { getPress } from "@/lib/press";
 import { getSite } from "@/lib/site";
 
@@ -34,7 +33,7 @@ const donations = SHOW_DONATE
 	<Waterline slot="hero" site={site} home={home} />
 	<Clips slot="sections" clips={clips} />
 	<Press slot="sections" items={press} />
-	{SHOW_NEWSLETTER && <Newsletter slot="sections" home={home} />}
+	<Newsletter slot="sections" home={home} />
 	{donations && <DonateShowcase slot="sections" donations={donations} />}
 	{(EXPERIMENTS || import.meta.env.DEV) && donations && <ExperimentsPanel slot="sections" groups={[donateExperiment]} />}
 </Layout>

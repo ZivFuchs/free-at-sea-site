@@ -5,6 +5,21 @@ import sitemap from "@astrojs/sitemap";
 import { defineConfig, envField, fontProviders } from "astro/config";
 import { stylex } from "./stylex.mjs";
 
+/** `/api/subscribe` lives in `src/worker.ts`, which `astro dev` doesn't run: accept and log instead. */
+/** @type {import("astro").AstroIntegration} */
+const devSubscribe = {
+	name: "dev-subscribe",
+	hooks: {
+		"astro:server:setup": ({ server }) => {
+			server.middlewares.use("/api/subscribe", (_req, res) => {
+				console.info("[subscribe] dev: not sent to Brevo");
+				res.statusCode = 204;
+				res.end();
+			});
+		},
+	},
+};
+
 export default defineConfig({
 	site: "https://freeatseafilm.com",
 	server: { port: 4324 },
@@ -32,6 +47,7 @@ export default defineConfig({
 	],
 	integrations: [
 		react(),
+		devSubscribe,
 		sitemap({ filter: (page) => !new URL(page).pathname.startsWith("/lab") }),
 	],
 	vite: {

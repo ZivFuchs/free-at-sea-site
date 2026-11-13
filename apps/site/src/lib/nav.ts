@@ -1,5 +1,3 @@
-import { SHOW_NEWSLETTER } from "@/lib/newsletter";
-
 export interface NavItem {
 	label: string;
 	href: string;
@@ -9,5 +7,5 @@ export interface NavItem {
 export const NAV: readonly NavItem[] = [
 	{ label: "Clips", href: "/#clips" },
 	{ label: "Press", href: "/#press" },
-	...(SHOW_NEWSLETTER ? [{ label: "Newsletter", href: "/#newsletter" }] : []),
+	{ label: "Newsletter", href: "/#newsletter" },
 ];

@@ -1,0 +1,41 @@
+{
+	// The deployed Worker (src/worker.ts) in front of the prebuilt static site. Build first (`build` / `build:staging`).
+	// wrangler.jsonc only feeds Astro's build; this file is what `deploy` / `deploy:staging` ship.
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "free-at-sea",
+	"account_id": "08bc090346c8148fda3e357569782486",
+	"compatibility_date": "2026-09-03",
+	"compatibility_flags": ["global_fetch_strictly_public"],
+	"main": "./src/worker.ts",
+	"assets": {
+		"directory": "./dist/client",
+		"binding": "ASSETS",
+		"run_worker_first": ["/api/*"]
+	},
+	"workers_dev": false,
+	"routes": [
+		{
+			"pattern": "freeatseafilm.com",
+			"custom_domain": true
+		}
+	],
+	"observability": {
+		"enabled": true
+	},
+	"env": {
+		"staging": {
+			// Password gate: every request hits the Worker.
+			"assets": {
+				"directory": "./dist/client",
+				"binding": "ASSETS",
+				"run_worker_first": true
+			},
+			"routes": [
+				{
+					"pattern": "staging.freeatseafilm.com",
+					"custom_domain": true
+				}
+			]
+		}
+	}
+}

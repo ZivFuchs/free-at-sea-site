@@ -1,11 +1,14 @@
 /**
- * Staging's Worker: the prebuilt site (`dist/client`) behind a password. Deployed by `pnpm run deploy:staging`
- * with `wrangler.staging.jsonc`, outside Astro's build, which ships no Worker for an all-static site.
- * Password: `wrangler secret put SITE_PASSWORD -c wrangler.staging.jsonc`. Unset, the gate is open.
+ * The deployed Worker (`wrangler.deploy.jsonc`): `/api/subscribe`, then the prebuilt static site (`dist/client`).
+ * Staging sets `SITE_PASSWORD` (`wrangler secret put SITE_PASSWORD -c wrangler.deploy.jsonc --env staging`)
+ * to put the whole site behind a password; production leaves it unset.
  */
-interface GateEnv {
+import { subscribe } from "./lib/subscribe";
+
+interface WorkerEnv {
 	ASSETS: Fetcher;
 	SITE_PASSWORD?: string;
+	BREVO_API_KEY?: string;
 }
 
 const challenge = () =>
@@ -37,6 +40,8 @@ const allowed = async (request: Request, password: string) => {
 export default {
 	async fetch(request, env) {
 		if (env.SITE_PASSWORD && !(await allowed(request, env.SITE_PASSWORD))) return challenge();
+		if (new URL(request.url).pathname === "/api/subscribe")
+			return subscribe(request, env.BREVO_API_KEY);
 		return env.ASSETS.fetch(request);
 	},
-} satisfies ExportedHandler<GateEnv>;
+} satisfies ExportedHandler<WorkerEnv>;

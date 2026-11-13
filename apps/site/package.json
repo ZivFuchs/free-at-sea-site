@@ -9,8 +9,8 @@
 		"build:staging": "CLOUDFLARE_ENV=staging astro build",
 		"preview": "astro preview",
 		"typecheck": "astro check",
-		"deploy": "wrangler deploy",
-		"deploy:staging": "wrangler deploy -c wrangler.staging.jsonc",
+		"deploy": "wrangler deploy -c wrangler.deploy.jsonc",
+		"deploy:staging": "wrangler deploy -c wrangler.deploy.jsonc --env staging",
 		"astro": "astro",
 		"cf-types": "wrangler types",
 		"theme": "astryx theme build src/theme/freeAtSeaTheme.ts --out src/theme/built/free-at-sea.css"

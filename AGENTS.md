@@ -30,8 +30,8 @@ for both). Don't start a second copy of one already running.
 - **dev** — `pnpm dev`
 - **deploy** — GitHub Actions (`.github/workflows/deploy.yml`): `main` deploys all three after CI passes, the Sanity
   publish webhook (`repository_dispatch: sanity-publish`) deploys production, and "Run workflow" deploys one target.
-  Manual: `pnpm build` (or `pnpm --filter site build:staging`) then `pnpm --filter site run deploy` (bare
-  `wrangler deploy`, so an un-built `dist/` ships stale). Studio: `pnpm --filter studio run deploy`.
+  Manual: `pnpm build` then `pnpm --filter site run deploy` (or `build:staging` then `deploy:staging`); deploy doesn't
+  build, so an un-built `dist/` ships stale. Studio: `pnpm --filter studio run deploy`.
 - **typecheck** — `pnpm typecheck`
 - **lint** — `pnpm lint`
 - **codegen** — `pnpm codegen` after any Sanity schema or GROQ change
@@ -51,8 +51,12 @@ If you need to run some code for exploration or debugging purposes, create a new
 
 Three workspace packages:
 
-- **`apps/site`** — Astro, Cloudflare adapter, Worker with static assets. Everything prerenders; there are no server routes.
-  `freeatseafilm.com`; `staging.freeatseafilm.com` (`CLOUDFLARE_ENV=staging`) builds from Sanity drafts and is noindexed.
+- **`apps/site`** — Astro, Cloudflare adapter. Everything prerenders; never add a non-prerendered route (server mode
+  breaks the StyleX build). The only server code is `src/worker.ts` (`/api/subscribe` → Brevo, staging password gate)
+  in front of the static build, deployed with `wrangler.deploy.jsonc`; `astro dev` stubs `/api/subscribe`.
+  `freeatseafilm.com`; `staging.freeatseafilm.com` (`CLOUDFLARE_ENV=staging`, `--env staging`) builds from Sanity
+  drafts, is noindexed and password-gated. Secrets (`BREVO_API_KEY`, `SITE_PASSWORD`):
+  `wrangler secret put X -c wrangler.deploy.jsonc [--env staging]`.
 - **`apps/studio`** — Sanity Studio, self-hosted as a static-assets Worker at `studio.freeatseafilm.com`. Never bundled into the site build.
 - **`packages/content`** (`@fas/content`) — the boundary between the two. GROQ queries, TypeGen output, and the `@sanity/client` factory.
 
@@ -105,6 +109,5 @@ TypeScript 6 across the whole workspace, pinned once at the root — TS 7 cannot
 - GROQ projections return `null` for absent fields, never `undefined`. Handle `null`.
 - The content client sets `useCdn: false` on purpose: builds run seconds after a publish webhook, and the API CDN
   caches for ~60s.
-- `apps/site/wrangler.jsonc` is **not** the deployed config. The adapter regenerates
-  `dist/client/wrangler.json` from it (flattened for `CLOUDFLARE_ENV`) at build time and wrangler deploys that — always
-  `pnpm build` after editing `wrangler.jsonc`, or your change is silently dropped.
+- `apps/site/wrangler.jsonc` only feeds Astro's build (env vars per `CLOUDFLARE_ENV`, dev bindings). The deployed
+  config is `wrangler.deploy.jsonc`.
