@@ -1,0 +1,184 @@
+---
+import Clips from "@/components/clips/Clips.astro";
+import { styles as form, formMarker } from "@/components/newsletter/Newsletter.styles";
+import Press from "@/components/press/Press.astro";
+import { marker, styles } from "@/lab/descent/Descent.styles";
+import ZoneMark from "@/lab/descent/ZoneMark.astro";
+import { formatMetres, STOPS, stop } from "@/lab/descent/zones";
+import LabLayout from "@/lab/LabLayout.astro";
+import { getClips } from "@/lib/clips";
+import { newsletterForm } from "@/lib/newsletter";
+import { getPress } from "@/lib/press";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+
+const [site, clips, press] = await Promise.all([getSite(), getClips(), getPress()]);
+const INTERLUDE_DEPTH = 2500;
+const BARS = ["45%", "100%", "65%", "85%"];
+---
+
+<LabLayout slug="descent">
+	<div data-dive {...sx(styles.root)}>
+		<canvas data-water aria-hidden="true" {...sx(styles.water)}></canvas>
+
+		<header data-dive-header {...sx(marker, styles.header)}>
+			<span aria-hidden="true" {...sx(styles.headerScrim)}></span>
+			<a href="#surface" {...sx(styles.wordmark)}>{site.title}</a>
+			<button type="button" data-sound aria-pressed="false" {...sx(marker, styles.sound)}>
+				<span aria-hidden="true" {...sx(styles.soundBars)}>
+					{BARS.map((h) => <span {...sx(styles.soundBar)} style={{ "--h": h }} />)}
+				</span>
+				Sound
+			</button>
+		</header>
+
+		<main id="main">
+			<section id="surface" aria-label="Intro" data-stop="surface" data-depth={stop("surface").depth} {...sx(styles.hero)}>
+				<div {...sx(styles.heroCopy)}>
+					<h1 data-dive-title {...sx(styles.title)}>{site.title}</h1>
+					<p {...sx(styles.tagline)}>{site.tagline}</p>
+				</div>
+				<p aria-hidden="true" {...sx(styles.cue)}>Descend<span {...sx(styles.cueLine)}></span></p>
+			</section>
+
+			<section id="idea" aria-labelledby="idea-heading" data-stop="idea" data-depth={stop("idea").depth} {...sx(styles.stop)}>
+				<ZoneMark depth={stop("idea").depth} fact="Enough light to see by. Almost everything we know of the sea lives in this top layer." />
+				<div {...sx(layout.container)}>
+					<div data-reveal {...sx(styles.passage, styles.reveal)}>
+						<h2 id="idea-heading" {...sx(styles.lede)}>Nearly half the planet lies beyond every border.</h2>
+						<p {...sx(styles.body)}>
+							Two hundred nautical miles from any coast, national waters end and the high seas begin. Seasteading is
+							the attempt to live out there: floating settlements in international waters, free to try new ways of
+							living together.
+						</p>
+						<p {...sx(styles.body)}>Free at Sea follows the people building the first ones.</p>
+					</div>
+				</div>
+			</section>
+
+			<div data-stop="clips" data-depth={stop("clips").depth} {...sx(styles.stop)}>
+				<ZoneMark depth={stop("clips").depth} fact="Sunlight thins to a dim blue overhead. Red was the first colour to go." />
+				<Clips clips={clips} />
+			</div>
+
+			<div data-stop="press" data-depth={stop("press").depth} {...sx(styles.stop)}>
+				<ZoneMark depth={stop("press").depth} fact="No sunlight has ever reached this water. What light there is, living things make." />
+				<Press items={press} />
+			</div>
+
+			<section aria-label="Interlude" data-depth={INTERLUDE_DEPTH} {...sx(styles.interlude)}>
+				<div data-reveal {...sx(layout.container, styles.reveal)}>
+					<p {...sx(styles.interludeDepth)}>{formatMetres(INTERLUDE_DEPTH)}</p>
+					<p {...sx(styles.interludeText)}>Most of the world is this: dark, cold, unclaimed, and almost entirely unvisited.</p>
+				</div>
+			</section>
+
+			<section id="newsletter" aria-labelledby="newsletter-heading" data-stop="newsletter" data-depth={stop("newsletter").depth} {...sx(styles.stop)}>
+				<ZoneMark depth={stop("newsletter").depth} fact="The abyssal plain. Floors like this one cover more of the Earth than all its land." />
+				<div {...sx(layout.container)}>
+					<div data-reveal {...sx(styles.signup, styles.reveal)}>
+						<h2 id="newsletter-heading" {...sx(form.heading)}>Word from the water</h2>
+						<p {...sx(form.sub)}>Join the newsletter</p>
+						<form {...newsletterForm()} {...sx(formMarker, form.form)}>
+							<div {...sx(form.field)}>
+								<label for="newsletter-email" {...sx(form.srOnly)}>Email address</label>
+								<input id="newsletter-email" type="email" name="email" autocomplete="email" placeholder="you@example.com" required {...sx(form.input)} />
+								<button type="submit" aria-label="Subscribe" {...sx(form.button)}>
+									<svg viewBox="0 0 16 16" aria-hidden="true" {...sx(form.arrow)}>
+										<path d="M2 8h11M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" />
+									</svg>
+								</button>
+							</div>
+							<div {...sx(form.statusRow)}>
+								<svg viewBox="0 0 16 16" aria-hidden="true" {...sx(form.check)}>
+									<path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="1.75" />
+								</svg>
+								<p data-newsletter-status aria-live="polite" {...sx(form.status)}></p>
+							</div>
+						</form>
+					</div>
+				</div>
+			</section>
+		</main>
+
+		<footer id="seabed" data-stop="seabed" data-depth={stop("seabed").depth} {...sx(styles.seabed)}>
+			<ZoneMark depth={stop("seabed").depth} fact="The floor. Soft sediment, settling a few millimetres every thousand years." />
+			<nav aria-label="Footer" {...sx(layout.container)}>
+				<ul {...sx(styles.links)}>
+					{STOPS.slice(0, -1).map(({ id, label }) => (
+						<li><a href={`#${id}`} {...sx(styles.link)}>{label}</a></li>
+					))}
+					{site.email && <li><a href={`mailto:${site.email}`} {...sx(styles.link)}>Contact</a></li>}
+				</ul>
+			</nav>
+			<p {...sx(styles.legal)}>© {new Date().getFullYear()} {site.title}</p>
+		</footer>
+
+		<div data-gauge {...sx(marker, styles.gauge)}>
+			<button type="button" data-gauge-toggle aria-expanded="false" aria-controls="dive-stops" aria-label="Depth and sections" {...sx(styles.readout)}>
+				<span data-readout {...sx(styles.readoutDepth)}>{formatMetres(0)}</span>
+				<span data-zone {...sx(styles.readoutZone)}>Sunlight</span>
+			</button>
+			<nav aria-label="Depths">
+				<ol id="dive-stops" {...sx(styles.stops)}>
+					{STOPS.map(({ id, label, depth }) => (
+						<li {...sx(styles.stopItem)}>
+							<a href={`#${id}`} data-tick={id} data-tick-depth={depth} {...sx(marker, styles.tick)}>
+								<span {...sx(styles.tickLabel)}>{label}</span>
+								<span {...sx(styles.tickDepth)}>{formatMetres(depth)}</span>
+								<span aria-hidden="true" {...sx(styles.tickLine)}></span>
+							</a>
+						</li>
+					))}
+					<li aria-hidden="true" {...sx(styles.needle)}></li>
+				</ol>
+			</nav>
+		</div>
+	</div>
+</LabLayout>
+
+<script>
+	import { ambience } from "@/lab/descent/ambience";
+	import { dive } from "@/lab/descent/dive";
+	import "@/lib/newsletter.client";
+
+	const root = document.querySelector<HTMLElement>("[data-dive]");
+	if (root) {
+		const depth = dive(root);
+		const sound = root.querySelector<HTMLButtonElement>("[data-sound]");
+		if (sound) ambience(sound, depth);
+
+		const header = root.querySelector("[data-dive-header]");
+		const title = root.querySelector("[data-dive-title]");
+		if (header && title) {
+			new IntersectionObserver(([entry]) => header.toggleAttribute("data-under", !entry?.isIntersecting), {
+				rootMargin: "-72px 0px 0px",
+			}).observe(title);
+		}
+
+		const seen = new IntersectionObserver(
+			(entries) => {
+				for (const { isIntersecting, target } of entries) {
+					if (!isIntersecting) continue;
+					target.setAttribute("data-seen", "");
+					seen.unobserve(target);
+				}
+			},
+			{ rootMargin: "0px 0px -12%" },
+		);
+		for (const el of root.querySelectorAll("[data-reveal]")) seen.observe(el);
+
+		const gauge = root.querySelector<HTMLElement>("[data-gauge]");
+		const toggle = gauge?.querySelector<HTMLButtonElement>("[data-gauge-toggle]");
+		const open = (on: boolean) => {
+			gauge?.toggleAttribute("data-open", on);
+			toggle?.setAttribute("aria-expanded", String(on));
+		};
+		toggle?.addEventListener("click", () => open(!gauge?.hasAttribute("data-open")));
+		gauge?.addEventListener("click", (event) => {
+			if (event.target instanceof Element && event.target.closest("a")) open(false);
+		});
+		addEventListener("keydown", (event) => event.key === "Escape" && open(false));
+	}
+</script>

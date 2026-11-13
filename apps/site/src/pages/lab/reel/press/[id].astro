@@ -1,0 +1,43 @@
+---
+import type { GetStaticPaths } from "astro";
+import { getReel, type ReelPress } from "@/lab/reel/content";
+import Detail from "@/lab/reel/Detail.astro";
+import { styles } from "@/lab/reel/Press.styles";
+import { sx } from "@/lib/sx";
+
+export const getStaticPaths = (async () => {
+	const { press } = await getReel();
+	return press.map((item) => ({ params: { id: item.slug }, props: { item, press } }));
+}) satisfies GetStaticPaths;
+
+interface Props {
+	item: ReelPress;
+	press: ReelPress[];
+}
+
+const { item, press } = Astro.props;
+const at = (by: number) => {
+	const { path, outlet, thumbnail } =
+		press[(item.index + by + press.length) % press.length] ?? item;
+	return { path, title: outlet, image: thumbnail?.src ?? null };
+};
+const byline = [item.outlet, item.author, item.kind, item.dateLabel].filter(Boolean).join(" · ");
+---
+
+<Detail
+	kind="Press"
+	index={item.index}
+	total={press.length}
+	title={item.quote ? `“${item.quote}”` : item.headline}
+	image={item.thumbnail?.src ?? null}
+	anchor={item.anchor}
+	prev={at(-1)}
+	next={at(1)}
+>
+	{item.quote && <p>{item.headline}</p>}
+	<p {...sx(styles.byline)}>{byline}</p>
+	<a href={item.url} target="_blank" rel="noopener" {...sx(styles.read)}>
+		Read at {item.outlet}
+		<span aria-hidden="true">↗</span>
+	</a>
+</Detail>

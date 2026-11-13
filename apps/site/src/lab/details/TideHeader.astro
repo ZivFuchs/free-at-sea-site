@@ -1,0 +1,59 @@
+---
+import { styles as header } from "@/components/header/Header.styles";
+import { getHome } from "@/lib/home";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+import Menu from "./Menu.astro";
+import { NAV } from "./sections";
+import { styles } from "./TideHeader.styles";
+
+/* The site header, but the bar fills with water as the page scrolls. */
+const menuId = "tide-menu";
+const site = await getSite();
+const darkTop = (await getHome()).heroBackdrop === "light";
+const split = Math.floor(NAV.length / 2);
+const sides = [
+	{ items: NAV.slice(0, split), side: header.left },
+	{ items: NAV.slice(split), side: header.right },
+];
+---
+
+<header
+	data-experiment="header"
+	data-variant="tide"
+	hidden
+	{...sx(header.header, header.overlay)}
+	style={`--solid: 0; --flip: 0; --mark: 0;${darkTop ? " --top: var(--app-ink);" : ""}`}
+>
+	<div aria-hidden="true" {...sx(styles.sea)}>
+		<div {...sx(styles.far)}></div>
+		<div {...sx(styles.near)}></div>
+	</div>
+	<nav aria-label="Main" {...sx(layout.container, header.bar)}>
+		{sides.map(({ items, side }, i) => (
+			<Fragment>
+				{i === 1 && (
+					<a href="#d-surface" {...sx(header.wordmark)}>
+						<span {...sx(header.markText)}>{site.title}</span>
+					</a>
+				)}
+				<ul {...sx(header.side, side)}>
+					{items.map(({ id, label }) => <li><a href={`#${id}`} {...sx(header.link)}>{label}</a></li>)}
+				</ul>
+			</Fragment>
+		))}
+		<button type="button" popovertarget={menuId} aria-label="Open menu" {...sx(header.toggle, header.open)}>
+			<span {...sx(header.line)}></span>
+			<span {...sx(header.line, header.lineShort)}></span>
+		</button>
+	</nav>
+</header>
+<Menu id={menuId} title={site.title} />
+
+<script>
+	import { headerScroll } from "./headerScroll";
+	import { variant } from "./variant";
+
+	variant("header", "tide", { on: (header) => headerScroll(header) });
+</script>

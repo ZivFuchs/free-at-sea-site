@@ -1,0 +1,154 @@
+---
+import Clips from "@/components/clips/Clips.astro";
+import { styles as form, formMarker } from "@/components/newsletter/Newsletter.styles";
+import Press from "@/components/press/Press.astro";
+import { marker, styles } from "@/lab/cloudbreak/Cloudbreak.styles";
+import {
+	CLOUD_BASE,
+	formatFeet,
+	formatMetres,
+	LEVELS,
+	level,
+	stateAt,
+} from "@/lab/cloudbreak/levels";
+import LabLayout from "@/lab/LabLayout.astro";
+import { getClips } from "@/lib/clips";
+import { newsletterForm } from "@/lib/newsletter";
+import { getPress } from "@/lib/press";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+
+const [site, clips, press] = await Promise.all([getSite(), getClips(), getPress()]);
+const NAV = LEVELS.filter(({ id }) => id === "clips" || id === "press" || id === "newsletter");
+const start = level("top");
+---
+
+<LabLayout slug="cloudbreak">
+	<div data-flight {...sx(styles.root)}>
+		<canvas data-sky aria-hidden="true" {...sx(styles.sky)}></canvas>
+
+		<header data-flight-header {...sx(marker, styles.header)}>
+			<span aria-hidden="true" {...sx(styles.scrim)}></span>
+			<a href="#top" {...sx(styles.wordmark)}>{site.title}</a>
+			<nav aria-label="Main" {...sx(styles.nav)}>
+				{NAV.map(({ id, label }) => <a href={`#${id}`} {...sx(styles.navLink)}>{label}</a>)}
+			</nav>
+		</header>
+
+		<main id="main">
+			<section id="top" aria-label="Intro" data-level="top" data-alt={start} {...sx(styles.hero)}>
+				<div {...sx(styles.heroCopy)}>
+					<h1 data-flight-title {...sx(styles.title)}>{site.title}</h1>
+					<p {...sx(styles.tagline)}>{site.tagline}</p>
+				</div>
+				<p aria-hidden="true" {...sx(styles.cue)}>Descend<span {...sx(styles.cueLine)}></span></p>
+			</section>
+
+			<section id="idea" aria-labelledby="idea-heading" data-level="idea" data-alt={level("idea")} {...sx(styles.passage)}>
+				<div {...sx(layout.container)}>
+					<div {...sx(styles.column)}>
+						<p {...sx(styles.mark)}><span {...sx(styles.markRule)}></span>In cloud</p>
+						<h2 id="idea-heading" {...sx(styles.lede)}>From up here, the ocean has no lines on it.</h2>
+						<p {...sx(styles.body)}>
+							Two hundred nautical miles from any coast, national waters end and the high seas begin: water that
+							belongs to no country. Seasteading is the attempt to live out there, on settlements that float.
+						</p>
+						<p {...sx(styles.body)}>Free at Sea follows the people trying to build the first ones.</p>
+					</div>
+				</div>
+			</section>
+
+			<section aria-label="Cloud base" data-level="break" data-alt={level("break")} {...sx(styles.interlude)}>
+				<div {...sx(layout.container)}>
+					<p {...sx(styles.mark)}><span {...sx(styles.markRule)}></span>Cloud base · {formatMetres(CLOUD_BASE)}</p>
+					<p {...sx(styles.breakLine)}>Then the weather lets go, and there it is.</p>
+				</div>
+			</section>
+
+			<div data-level="clips" data-alt={level("clips")} {...sx(styles.level)}>
+				<span aria-hidden="true" {...sx(styles.shade)}></span>
+				<Clips clips={clips} />
+			</div>
+
+			<div data-level="press" data-alt={level("press")} {...sx(styles.level)}>
+				<span aria-hidden="true" {...sx(styles.shade)}></span>
+				<Press items={press} />
+			</div>
+
+			<section id="newsletter" aria-labelledby="newsletter-heading" data-level="newsletter" data-alt={level("newsletter")} {...sx(styles.signup)}>
+				<div {...sx(layout.container)}>
+					<div {...sx(styles.card)}>
+						<h2 id="newsletter-heading" {...sx(form.heading)}>Word from the water</h2>
+						<p {...sx(form.sub)}>Join the newsletter</p>
+						<form {...newsletterForm()} {...sx(formMarker, form.form)}>
+							<div {...sx(form.field)}>
+								<label for="newsletter-email" {...sx(form.srOnly)}>Email address</label>
+								<input id="newsletter-email" type="email" name="email" autocomplete="email" placeholder="you@example.com" required {...sx(form.input)} />
+								<button type="submit" aria-label="Subscribe" {...sx(form.button)}>
+									<svg viewBox="0 0 16 16" aria-hidden="true" {...sx(form.arrow)}>
+										<path d="M2 8h11M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" />
+									</svg>
+								</button>
+							</div>
+							<div {...sx(form.statusRow)}>
+								<svg viewBox="0 0 16 16" aria-hidden="true" {...sx(form.check)}>
+									<path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="1.75" />
+								</svg>
+								<p data-newsletter-status aria-live="polite" {...sx(form.status)}></p>
+							</div>
+						</form>
+					</div>
+				</div>
+			</section>
+		</main>
+
+		<footer id="sea" data-level="sea" data-alt={level("sea")} {...sx(styles.footer)}>
+			<nav aria-label="Footer" {...sx(layout.container)}>
+				<ul {...sx(styles.links)}>
+					<li><a href="#top" {...sx(styles.link)}>Back up</a></li>
+					{NAV.map(({ id, label }) => <li><a href={`#${id}`} {...sx(styles.link)}>{label}</a></li>)}
+					{site.email && <li><a href={`mailto:${site.email}`} {...sx(styles.link)}>Contact</a></li>}
+				</ul>
+			</nav>
+			<p {...sx(styles.legal)}>© {new Date().getFullYear()} {site.title}</p>
+		</footer>
+
+		<nav aria-label="Altitude" {...sx(styles.rail)}>
+			<ol {...sx(styles.stops)}>
+				{LEVELS.map(({ id, label, altitude }) => (
+					<li {...sx(styles.stop)}>
+						<a href={`#${id}`} data-tick={id} data-tick-alt={altitude} {...sx(marker, styles.tick)}>
+							<span {...sx(styles.tickLabel)}>{label} · {formatMetres(altitude)}</span>
+							<span aria-hidden="true" {...sx(styles.tickLine)}></span>
+						</a>
+					</li>
+				))}
+				<li aria-hidden="true" {...sx(styles.needle)}></li>
+			</ol>
+		</nav>
+
+		<p aria-label="Altitude" {...sx(styles.altimeter)}>
+			<span data-metres {...sx(styles.metres)}>{formatMetres(start)}</span>
+			<span data-feet {...sx(styles.feet)}>{formatFeet(start)}</span>
+			<span data-state {...sx(styles.state)}>{stateAt(start)}</span>
+		</p>
+	</div>
+</LabLayout>
+
+<script>
+	import { flight } from "@/lab/cloudbreak/flight";
+	import "@/lib/newsletter.client";
+
+	const root = document.querySelector<HTMLElement>("[data-flight]");
+	if (root) {
+		flight(root);
+		const header = root.querySelector("[data-flight-header]");
+		const title = root.querySelector("[data-flight-title]");
+		if (header && title) {
+			new IntersectionObserver(([entry]) => header.toggleAttribute("data-under", !entry?.isIntersecting), {
+				rootMargin: "-72px 0px 0px",
+			}).observe(title);
+		}
+	}
+</script>

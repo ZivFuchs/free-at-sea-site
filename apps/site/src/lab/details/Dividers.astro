@@ -1,0 +1,27 @@
+---
+/* Once per page: the `off` marker, the foam filter, and the observer that starts each foam wash. */
+---
+
+<span data-experiment="dividers" data-variant="off" data-active hidden></span>
+<svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
+	<filter id="details-foam" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+		<feTurbulence type="turbulence" baseFrequency="0.02 0.036" numOctaves="1" seed="7" result="noise"></feTurbulence>
+		<!-- White, with alpha high along the noise's veins: foam cells. -->
+		<feColorMatrix in="noise" type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  -18 0 0 0 1.5" result="veins"></feColorMatrix>
+		<feGaussianBlur in="veins" stdDeviation="0.5" result="soft"></feGaussianBlur>
+		<feComposite in="soft" in2="SourceAlpha" operator="in" result="shaped"></feComposite>
+		<feComponentTransfer in="shaped">
+			<feFuncA type="linear" slope="1.6" intercept="-0.25"></feFuncA>
+		</feComponentTransfer>
+	</filter>
+</svg>
+
+<script>
+	const seen = new IntersectionObserver(
+		(entries) => {
+			for (const { target, isIntersecting } of entries) target.toggleAttribute("data-in", isIntersecting);
+		},
+		{ rootMargin: "0px 0px -15% 0px" },
+	);
+	for (const foam of document.querySelectorAll("[data-foam]")) seen.observe(foam);
+</script>

@@ -1,0 +1,30 @@
+---
+import { sx } from "@/lib/sx";
+import { styles } from "./Tank.styles";
+
+/* A stretch of simulated water. Each `<li data-body>` in the slot floats on it as a rigid body
+ * (`data-density`, `data-keel`, `data-unit` to keep neighbours on one row). Without script it is a plain list. */
+interface Props {
+	label: string;
+	/** Gaps, air above and water below, as fractions of the tallest body. */
+	gap?: number;
+	unitGap?: number;
+	air?: number;
+	depth?: number;
+}
+
+const { label, gap, unitGap, air, depth } = Astro.props;
+---
+
+<div data-tank data-gap={gap} data-unit-gap={unitGap} data-air={air} data-depth={depth} {...sx(styles.tank)}>
+	<ul data-bodies aria-label={label} {...sx(styles.list)}>
+		<slot />
+	</ul>
+	<canvas aria-hidden="true" {...sx(styles.water)}></canvas>
+</div>
+
+<script>
+	import { mountTanks } from "./tank";
+
+	mountTanks();
+</script>

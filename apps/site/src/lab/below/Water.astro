@@ -1,0 +1,62 @@
+---
+import { sx } from "@/lib/sx";
+import { styles } from "./below.styles";
+
+/* The sea from directly above, fixed behind the page. Elements with `data-cue="<kind>"` call something up
+ * from below when they reach the middle of the viewport; `?show=<kind>` holds one in place for review. */
+---
+
+<div aria-hidden="true" {...sx(styles.water)}>
+	<canvas data-below {...sx(styles.canvas)}></canvas>
+</div>
+
+<script>
+	import { runShader } from "@/lab/lib/gl";
+	import noise from "@/lab/lib/glsl/noise.glsl?raw";
+	import { reducedMotion } from "@/lab/lib/motion";
+	import { encounters, type Kind } from "./encounters";
+	import head from "./head.glsl?raw";
+	import water from "./water.frag?raw";
+
+	const KINDS: readonly Kind[] = ["whale", "pod", "ray", "school", "surface"];
+	const isKind = (v: string | null | undefined): v is Kind => KINDS.includes(v as Kind);
+	const canvas = document.querySelector<HTMLCanvasElement>("canvas[data-below]");
+
+	if (canvas) {
+		const still = reducedMotion();
+		const below = encounters(() => canvas.clientWidth / Math.max(canvas.clientHeight, 1), still);
+		const shader = runShader(canvas, {
+			fragment: `${head}\n${noise}\n${water}`,
+			fps: 30,
+			uniforms: (time) => ({
+				...below.uniforms(time),
+				u_scroll: scrollY / innerHeight,
+				...(still ? { u_time: 20, u_beat: 1 } : {}),
+			}),
+		});
+
+		if (shader) {
+			canvas.setAttribute("data-on", "");
+			const show = new URLSearchParams(location.search).get("show");
+			if (isKind(show)) below.hold(show, show === "surface" ? 0.56 : 0.5);
+			else if (still) below.hold("whale", 0.4);
+
+			const cues = new IntersectionObserver(
+				(entries) => {
+					for (const { isIntersecting, target } of entries) {
+						const kind = (target as HTMLElement).dataset.cue;
+						if (isIntersecting && isKind(kind)) below.cue(kind);
+					}
+				},
+				{ rootMargin: "-45% 0px -45% 0px" },
+			);
+			for (const el of document.querySelectorAll("[data-cue]")) cues.observe(el);
+
+			if (still) addEventListener("scroll", shader.redraw, { passive: true });
+			addEventListener("pagehide", shader.stop, { once: true });
+		}
+	}
+
+	// This hero is always dark: drop the header's dark-text start, set for a light CMS poster.
+	document.querySelector<HTMLElement>("[data-site-header]")?.style.removeProperty("--top");
+</script>

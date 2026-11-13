@@ -1,0 +1,121 @@
+---
+import { Image } from "astro:assets";
+import still from "@/assets/hero/barge-from-afar.jpg";
+import { styles as media } from "@/components/hero/HeroMedia.styles";
+import { styles as hero, heroMarker } from "@/components/hero/Waterline.styles";
+import type { Home } from "@/lib/home";
+import type { SiteSettings } from "@/lib/site";
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+import { styles } from "./Approach.styles";
+import { CHAPTERS } from "./chapters";
+
+/* The hero shot, pinned and scrubbed by scroll: footage time and a push-in on the barge both follow the scrollbar. */
+interface Props {
+	site: SiteSettings;
+	home: Home;
+}
+
+const { site, home } = Astro.props;
+const HORIZON = 0.178;
+const position = `50% ${HORIZON * 100}%`;
+const alt = "The barge alone on open sea, seen from far above";
+const pad = (n: number) => String(n).padStart(2, "0");
+---
+
+<section aria-label="Intro" data-approach data-horizon={HORIZON} {...sx(styles.track)}>
+	<div data-stage {...sx(heroMarker, styles.stage)} style={{ "--horizon": HORIZON }}>
+		<div data-camera {...sx(styles.camera)}>
+			{
+				home.heroPoster ? (
+					<img
+						src={home.heroPoster.src}
+						srcset={home.heroPoster.srcset}
+						sizes="(min-aspect-ratio: 16/9) 250vw, 450vh"
+						alt={alt}
+						loading="eager"
+						fetchpriority="high"
+						{...sx(media.frame, media.media, media.reveal)}
+						style={{ objectPosition: position }}
+					/>
+				) : (
+					<Image
+						src={still}
+						alt={alt}
+						widths={[1280, 1920, 2880]}
+						sizes="(min-aspect-ratio: 16/9) 250vw, 450vh"
+						loading="eager"
+						fetchpriority="high"
+						{...sx(media.frame, media.media, media.reveal)}
+						style={{ objectPosition: position }}
+					/>
+				)
+			}
+			{
+				home.heroVideo && (
+					<video
+						data-src={home.heroVideo}
+						muted
+						playsinline
+						preload="auto"
+						aria-hidden="true"
+						{...sx(media.media, media.video)}
+						style={{ objectPosition: position }}
+					/>
+				)
+			}
+		</div>
+		<div aria-hidden="true" {...sx(styles.scrim)}></div>
+		<div aria-hidden="true" {...sx(styles.seam)}></div>
+
+		<div {...sx(hero.copy)}>
+			<h1 data-title-fade {...sx(hero.text, hero.title)}>{site.title}</h1>
+			<p data-title-fade {...sx(hero.text, hero.tagline)}>{site.tagline}</p>
+		</div>
+
+		<p aria-hidden="true" {...sx(styles.cue)}>
+			Scroll to approach
+			<span {...sx(styles.cueLine)}></span>
+		</p>
+
+		<div aria-hidden="true" {...sx(styles.hud)}>
+			<div {...sx(layout.container)}>
+				<p {...sx(styles.readouts)}>
+					<span>Range <span data-range {...sx(styles.value)}>2.40</span> nm</span>
+					{home.heroVideo && <span>Footage <span data-clock {...sx(styles.value)}>0.00</span> s</span>}
+				</p>
+				<div {...sx(styles.rail)}>
+					<div {...sx(styles.fill)}></div>
+					{
+						CHAPTERS.map(({ from, label }) => (
+							<Fragment>
+								<span {...sx(styles.tick)} style={{ "--at": from }} />
+								<span {...sx(styles.tickLabel)} style={{ "--at": from }}>{label}</span>
+							</Fragment>
+						))
+					}
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<ol {...sx(layout.container, styles.chapters)}>
+		{
+			CHAPTERS.map(({ from, to, label, line }, i) => (
+				<li data-from={from} data-to={to} {...sx(styles.chapter)}>
+					<p {...sx(styles.chapterLabel)}>
+						<span {...sx(styles.chapterNumber)}>{pad(i + 1)}</span>
+						{label}
+					</p>
+					<p {...sx(styles.chapterLine)}>{line}</p>
+				</li>
+			))
+		}
+	</ol>
+</section>
+
+<script>
+	import { approach } from "./approach.client";
+
+	approach();
+</script>

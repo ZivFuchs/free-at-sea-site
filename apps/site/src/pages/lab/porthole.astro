@@ -1,0 +1,165 @@
+---
+import { Image } from "astro:assets";
+import barge from "@/assets/hero/barge-from-afar.jpg";
+import Footer from "@/components/footer/Footer.astro";
+import Newsletter from "@/components/newsletter/Newsletter.astro";
+import Press from "@/components/press/Press.astro";
+import LabLayout from "@/lab/LabLayout.astro";
+import { railMarker, styles } from "@/lab/porthole/porthole.styles";
+import { getClips } from "@/lib/clips";
+import { getHome } from "@/lib/home";
+import { getPress } from "@/lib/press";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+
+const [site, home, clips, press] = await Promise.all([
+	getSite(),
+	getHome(),
+	getClips(),
+	getPress(),
+]);
+
+const pad = (n: number) => String(n).padStart(2, "0");
+const [first, ...rest] = site.title.split(" ");
+const WIDTHS = [768, 1280, 1920];
+/** Hero, the idea, each clip, then the open sea. */
+const stops = ["Intro", "The idea", ...clips.map((c) => c.title), "Outside"];
+const CLIPS_AT = 2;
+const total = stops.length;
+---
+
+<LabLayout slug="porthole">
+	<main>
+		<div data-porthole {...sx(styles.track)} style={{ "--scenes": total }}>
+			<div data-stage {...sx(styles.stage)}>
+				<header {...sx(layout.container, styles.header)}>
+					<a href="/lab/porthole" {...sx(styles.wordmark)}>{site.title}</a>
+					<nav aria-label="Main" {...sx(styles.nav)}>
+						{clips.length > 0 && <a href="#clips" data-goto={CLIPS_AT} {...sx(styles.navLink)}>Clips</a>}
+						<a href="#press" {...sx(styles.navLink)}>Press</a>
+						<a href="#newsletter" {...sx(styles.navLink)}>Newsletter</a>
+					</nav>
+				</header>
+
+				<div aria-hidden="true" {...sx(styles.view)}>
+					<div {...sx(styles.iris)}></div>
+					<div data-through {...sx(styles.through)}>
+						{
+							home.heroPoster ? (
+								<img src={home.heroPoster.src} srcset={home.heroPoster.srcset} sizes="100vw" alt="" loading="lazy" {...sx(styles.media)} />
+							) : (
+								<Image src={barge} alt="" widths={WIDTHS} sizes="100vw" loading="lazy" {...sx(styles.media)} />
+							)
+						}
+						<div {...sx(styles.throughVeil)}></div>
+					</div>
+					<div data-box {...sx(styles.box)}>
+						<div data-shutter {...sx(styles.shutter)}>
+							<div data-scene data-on {...sx(styles.scene)}>
+								{
+									home.heroPoster ? (
+										<img src={home.heroPoster.src} srcset={home.heroPoster.srcset} sizes="(min-width: 48rem) 60vw, 100vw" alt="" fetchpriority="high" {...sx(styles.media)} />
+									) : (
+										<Image src={barge} alt="" widths={WIDTHS} sizes="(min-width: 48rem) 60vw, 100vw" loading="eager" {...sx(styles.media)} />
+									)
+								}
+								{home.heroVideo && <video data-src={home.heroVideo} muted loop playsinline {...sx(styles.media, styles.video)} />}
+							</div>
+							<div data-scene {...sx(styles.scene)}>
+								<Image src={barge} alt="" widths={WIDTHS} sizes="100vw" loading="lazy" {...sx(styles.media, styles.closer)} />
+							</div>
+							{
+								clips.map(({ title, embed, thumbnail }) => (
+									<div data-scene data-embed={embed} data-title={title} {...sx(styles.scene)}>
+										{thumbnail && <img src={thumbnail} alt="" loading="lazy" decoding="async" {...sx(styles.media)} />}
+									</div>
+								))
+							}
+						</div>
+						<svg viewBox="0 0 100 100" {...sx(styles.blades)}><polygon data-blades points="" /></svg>
+						<svg viewBox="0 0 100 100" preserveAspectRatio="none" {...sx(styles.glassLayer)}>
+							<defs>
+								<linearGradient id="porthole-water" x1="0" y1="0" x2="0" y2="1">
+									<stop offset="0.8" stop-color="currentColor" {...sx(styles.waterTop)} />
+									<stop offset="1" stop-color="currentColor" {...sx(styles.waterBottom)} />
+								</linearGradient>
+							</defs>
+							<path data-water d="M-4 85L104 85L104 104L-4 104Z" {...sx(styles.waterFill)} />
+							<path data-meniscus d="M-4 85L104 85" {...sx(styles.meniscus)} />
+						</svg>
+						<div {...sx(styles.glassLayer, styles.sheen)}></div>
+					</div>
+				</div>
+				<div aria-hidden="true" {...sx(styles.ticks)}></div>
+				<div aria-hidden="true" {...sx(styles.frame)}></div>
+
+				<div {...sx(styles.captions)}>
+					<section data-caption data-on aria-label="Intro" {...sx(styles.caption)}>
+						<p {...sx(styles.eyebrow)}>Cabin 4 · Starboard</p>
+						<h1 {...sx(styles.title)}>
+							<span {...sx(styles.titleLine)}>{first}</span>{" "}{rest.join(" ")}
+						</h1>
+						<p {...sx(styles.tagline)}>{site.tagline}</p>
+						<p aria-hidden="true" {...sx(styles.cue)}>Scroll<span {...sx(styles.cueMark)}>↓</span></p>
+					</section>
+					<section data-caption aria-label="The idea" {...sx(styles.caption)}>
+						<p {...sx(styles.eyebrow)}>The idea</p>
+						<h2 {...sx(styles.heading)}>Past the last border</h2>
+						<p {...sx(styles.body)}>
+							Two hundred nautical miles from shore, national waters end. Seasteaders want to build homes out there. This film follows them.
+						</p>
+					</section>
+					{
+						clips.map(({ title, caption, url, embed }, i) => (
+							<section data-caption id={i === 0 ? "clips" : undefined} aria-label={title} {...sx(styles.caption)}>
+								<p {...sx(styles.eyebrow)}>Clip {pad(i + 1)} of {pad(clips.length)}</p>
+								<h2 {...sx(styles.heading)}>{title}</h2>
+								{caption && <p {...sx(styles.body)}>{caption}</p>}
+								<a href={url} data-embed={embed} data-title={title} {...sx(styles.play)}>
+									<svg viewBox="0 0 12 14" aria-hidden="true" {...sx(styles.triangle)}>
+										<path d="M0 0v14l12-7z" fill="currentColor" />
+									</svg>
+									Play clip
+								</a>
+							</section>
+						))
+					}
+				</div>
+
+				<section data-outside aria-label="Outside" {...sx(styles.outside)}>
+					<p {...sx(styles.eyebrow)}>On deck</p>
+					<h2 {...sx(styles.outsideHeading)}>No frame out here.</h2>
+				</section>
+
+				<nav aria-label="Scenes" {...sx(styles.rail)}>
+					{
+						stops.map((label, i) => (
+							<button type="button" data-dot data-goto={i} data-on={i === 0 ? "" : undefined} aria-label={label} {...sx(railMarker, styles.railItem)}>
+								<span {...sx(styles.railDot)} />
+							</button>
+						))
+					}
+				</nav>
+			</div>
+
+			<dialog aria-label="Clip player" {...sx(styles.dialog)}>
+				<div {...sx(styles.dialogBar)}>
+					<h3 data-player-title {...sx(styles.dialogTitle)}></h3>
+					<button type="button" data-close {...sx(styles.close)}>Close</button>
+				</div>
+				<div data-player data-fill={sx(styles.fill).class} {...sx(styles.player)}></div>
+			</dialog>
+		</div>
+
+		<Press items={press} />
+		<Newsletter home={home} />
+	</main>
+	<Footer />
+</LabLayout>
+
+<script>
+	import { initPorthole } from "@/lab/porthole/porthole.client";
+
+	for (const track of document.querySelectorAll<HTMLElement>("[data-porthole]")) initPorthole(track);
+</script>

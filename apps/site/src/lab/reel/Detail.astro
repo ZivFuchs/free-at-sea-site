@@ -1,0 +1,70 @@
+---
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+import { type Neighbour, pad, REEL } from "./content";
+import { neighbourMarker, styles } from "./Detail.styles";
+import ReelShell from "./ReelShell.astro";
+
+/* One stop of the reel on its own page: the frame, its words, and the stops either side. */
+interface Props {
+	kind: string;
+	index: number;
+	total: number;
+	title: string;
+	image: string | null;
+	/** Fragment of this stop on the home page. */
+	anchor: string;
+	/** Player URL: the poster becomes a play button. */
+	embed?: string;
+	prev: Neighbour;
+	next: Neighbour;
+}
+
+const { kind, index, total, title, image, anchor, embed, prev, next } = Astro.props;
+const neighbours = [
+	{ rel: "prev", way: "Previous", ...prev },
+	{ rel: "next", way: "Next", ...next },
+];
+---
+
+<ReelShell>
+	<article {...sx(layout.container, styles.page)}>
+		<a href={`${REEL}/#${anchor}`} data-back {...sx(styles.back)}>← The reel</a>
+		<div data-frame data-fill={sx(styles.fill).class} {...sx(styles.frame)}>
+			{image && <img src={image} alt="" fetchpriority="high" {...sx(styles.fill)} />}
+			{embed && (
+				<button type="button" data-play={embed} aria-label={`Play ${title}`} {...sx(styles.play)}>
+					<span {...sx(styles.disc)}>
+						<svg viewBox="0 0 12 14" aria-hidden="true" {...sx(styles.triangle)}>
+							<path d="M0 0v14l12-7z" fill="currentColor" />
+						</svg>
+					</span>
+				</button>
+			)}
+		</div>
+		<div {...sx(styles.info)}>
+			<div>
+				<p {...sx(styles.kicker)}>{kind} {pad(index + 1)} / {pad(total)}</p>
+				<h1 {...sx(styles.title)}>{title}</h1>
+				<div {...sx(styles.body)}><slot /></div>
+			</div>
+			{total > 1 && (
+				<nav aria-label={`More ${kind.toLowerCase()}`} {...sx(styles.neighbours)}>
+					{neighbours.map(({ rel, way, path, title, image }) => (
+						<a href={path} rel={rel} {...sx(neighbourMarker, styles.neighbour)}>
+							{image && <img src={image} alt="" loading="lazy" decoding="async" {...sx(styles.thumb)} />}
+							<span>
+								<span {...sx(styles.way)}>{way}</span>
+								<span {...sx(styles.name)}>{title}</span>
+							</span>
+						</a>
+					))}
+				</nav>
+			)}
+		</div>
+	</article>
+</ReelShell>
+
+<script>
+	import "./detail.client";
+</script>

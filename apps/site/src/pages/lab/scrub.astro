@@ -1,0 +1,31 @@
+---
+import Clips from "@/components/clips/Clips.astro";
+import Footer from "@/components/footer/Footer.astro";
+import Newsletter from "@/components/newsletter/Newsletter.astro";
+import Press from "@/components/press/Press.astro";
+import LabLayout from "@/lab/LabLayout.astro";
+import Approach from "@/lab/scrub/Approach.astro";
+import Bar from "@/lab/scrub/Bar.astro";
+import { getClips } from "@/lib/clips";
+import { getHome } from "@/lib/home";
+import { getPress } from "@/lib/press";
+import { getSite } from "@/lib/site";
+
+const [site, home, clips, press] = await Promise.all([
+	getSite(),
+	getHome(),
+	getClips(),
+	getPress(),
+]);
+---
+
+<LabLayout slug="scrub">
+	<Bar />
+	<main id="main">
+		<Approach site={site} home={home} />
+		<Clips clips={clips} />
+		<Press items={press} />
+		<Newsletter home={home} />
+	</main>
+	<Footer />
+</LabLayout>

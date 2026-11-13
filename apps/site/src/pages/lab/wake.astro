@@ -1,0 +1,115 @@
+---
+import Clips from "@/components/clips/Clips.astro";
+import Footer from "@/components/footer/Footer.astro";
+import Header from "@/components/header/Header.astro";
+import { formMarker, styles as newsletter } from "@/components/newsletter/Newsletter.styles";
+import Press from "@/components/press/Press.astro";
+import LabLayout from "@/lab/LabLayout.astro";
+import { styles } from "@/lab/wake/Wake.styles";
+import { getClips } from "@/lib/clips";
+import { newsletterForm } from "@/lib/newsletter";
+import { getPress } from "@/lib/press";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+
+const [site, clips, press] = await Promise.all([getSite(), getClips(), getPress()]);
+const quoted = press.find((item) => item.quote);
+---
+
+<LabLayout slug="wake">
+	<div aria-hidden="true" {...sx(styles.backdrop)}>
+		<canvas data-wake {...sx(styles.canvas)}></canvas>
+	</div>
+
+	<Header overlay />
+	<main id="main" {...sx(styles.layer)}>
+		<section aria-label="Intro" {...sx(styles.hero)}>
+			<h1 data-hero-title data-hero-fade {...sx(styles.title)}>
+				<span data-wake-title {...sx(styles.titleText)}>{site.title}</span>
+			</h1>
+			<p data-hero-fade {...sx(styles.tagline)}>{site.tagline}</p>
+			<p data-wake-hint {...sx(styles.hint)}>
+				<span {...sx(styles.hintTouch)}>Drag across the water</span>
+				<span {...sx(styles.hintHover)}>Move through the water</span>
+			</p>
+		</section>
+
+		<section aria-label="The film" {...sx(styles.statement)}>
+			<div {...sx(layout.container)}>
+				<div {...sx(styles.measure)}>
+					<p data-wake-bloom {...sx(styles.eyebrow)}>The film</p>
+					<p {...sx(styles.lede)}>
+						Two hundred nautical miles from any coast, national waters end.{" "}
+						<span {...sx(styles.film)}>{site.title}</span> follows the people trying to build a home out there.
+					</p>
+				</div>
+			</div>
+		</section>
+
+		<div {...sx(styles.calm)}>
+			<Clips clips={clips} />
+		</div>
+
+		<section aria-label="Quote" {...sx(styles.interlude)}>
+			<div {...sx(layout.container)}>
+				{
+					quoted ? (
+						<figure>
+							<blockquote data-wake-bloom {...sx(styles.quote)}>{quoted.quote}</blockquote>
+							<figcaption {...sx(styles.source)}>{quoted.outlet}</figcaption>
+						</figure>
+					) : (
+						<p data-wake-bloom {...sx(styles.quote)}>Past the last line on the chart, the water belongs to no one.</p>
+					)
+				}
+			</div>
+		</section>
+
+		<div {...sx(styles.calm)}>
+			<Press items={press} />
+		</div>
+
+		<section id="newsletter" aria-labelledby="newsletter-heading" {...sx(styles.signup)}>
+			<div {...sx(layout.container)}>
+				<div {...sx(newsletter.card)}>
+					<h2 id="newsletter-heading" data-wake-bloom {...sx(newsletter.heading)}>Word from the water</h2>
+					<p {...sx(newsletter.sub)}>Join the newsletter</p>
+					<form {...newsletterForm()} {...sx(formMarker, newsletter.form)}>
+						<div {...sx(newsletter.field)}>
+							<label for="newsletter-email" {...sx(newsletter.srOnly)}>Email address</label>
+							<input
+								id="newsletter-email"
+								type="email"
+								name="email"
+								autocomplete="email"
+								placeholder="you@example.com"
+								required
+								{...sx(newsletter.input)}
+							/>
+							<button type="submit" aria-label="Subscribe" {...sx(newsletter.button)}>
+								<svg viewBox="0 0 16 16" aria-hidden="true" {...sx(newsletter.arrow)}>
+									<path d="M2 8h11M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" />
+								</svg>
+							</button>
+						</div>
+						<div {...sx(newsletter.statusRow)}>
+							<svg viewBox="0 0 16 16" aria-hidden="true" {...sx(newsletter.check)}>
+								<path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="1.75" />
+							</svg>
+							<p data-newsletter-status aria-live="polite" {...sx(newsletter.status)}></p>
+						</div>
+					</form>
+				</div>
+			</div>
+		</section>
+	</main>
+	<div {...sx(styles.layer)}>
+		<Footer />
+	</div>
+</LabLayout>
+
+<script>
+	import "@/lib/newsletter.client";
+	import "@/lab/wake/wake.client";
+</script>

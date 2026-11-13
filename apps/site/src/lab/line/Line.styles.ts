@@ -1,0 +1,286 @@
+import * as stylex from "@stylexjs/stylex";
+import { color, font } from "@/theme/tokens.stylex";
+
+const label = {
+	fontFamily: font.sans,
+	fontSize: "0.6875rem",
+	letterSpacing: "0.18em",
+	textTransform: "uppercase",
+} as const;
+
+const focus = {
+	outline: { default: "none", ":focus-visible": "1px solid currentColor" },
+	outlineOffset: "6px",
+} as const;
+
+export const rowMarker = stylex.defaultMarker();
+
+export const styles = stylex.create({
+	root: { position: "relative", overflowX: "clip" },
+	svg: {
+		position: "absolute",
+		inset: 0,
+		width: "100%",
+		height: "100%",
+		overflow: "visible",
+		pointerEvents: "none",
+	},
+	path: {
+		fill: "none",
+		stroke: color.paper85,
+		strokeWidth: { default: 1.1, "@media (min-width: 48rem)": 1.25 },
+		strokeLinecap: "round",
+		strokeLinejoin: "round",
+	},
+	tip: {
+		fill: color.aqua,
+		opacity: { default: 0, ":is([data-on])": 1 },
+		transitionProperty: "opacity",
+		transitionDuration: "400ms",
+	},
+	tick: {
+		opacity: { default: 0, ":is([data-on])": 1 },
+		transitionProperty: "opacity",
+		transitionDuration: "600ms",
+	},
+	tickRing: { fill: color.ocean, stroke: color.paper85, strokeWidth: 1.1 },
+	tickLabel: {
+		...label,
+		display: { default: "none", "@media (min-width: 48rem)": "inline" },
+		fill: color.paper45,
+	},
+	content: { position: "relative" },
+	gutter: {
+		marginInline: "auto",
+		width: "100%",
+		maxWidth: "80rem",
+		paddingInline: { default: "2rem", "@media (min-width: 48rem)": "5rem" },
+	},
+
+	nav: {
+		position: "absolute",
+		insetInline: 0,
+		top: 0,
+		display: "flex",
+		justifyContent: { default: "center", "@media (min-width: 48rem)": "flex-end" },
+		gap: "2rem",
+		paddingBlock: "1.75rem",
+	},
+	navLink: {
+		...label,
+		...focus,
+		color: { default: color.paper65, ":hover": color.paper },
+		transitionProperty: "color",
+		transitionDuration: "150ms",
+	},
+
+	hero: {
+		position: "relative",
+		display: "flex",
+		flexDirection: "column",
+		justifyContent: "center",
+		height: "100svh",
+		minHeight: "32rem",
+		paddingBottom: "8svh",
+		textAlign: "center",
+	},
+	titleSize: { fontSize: "min(13.3vw, 15.4svh)" },
+	title: {
+		fontFamily: font.hero,
+		fontWeight: 900,
+		lineHeight: 1,
+		whiteSpace: "nowrap",
+		textTransform: "uppercase",
+	},
+	/** Sits on the title's baseline: the letters stand on the horizon. */
+	horizon: { height: 0, marginTop: "-0.05em" },
+	tagline: {
+		marginTop: "1.5rem",
+		fontStyle: "italic",
+		fontSize: { default: "1.125rem", "@media (min-width: 48rem)": "1.375rem" },
+		color: color.paper70,
+	},
+
+	section: { paddingBlock: { default: "5rem", "@media (min-width: 48rem)": "9rem" } },
+	eyebrow: { ...label, color: color.aqua },
+	heading: {
+		marginTop: "1rem",
+		fontFamily: font.hero,
+		fontWeight: 900,
+		fontSize: { default: "2rem", "@media (min-width: 48rem)": "3rem" },
+		lineHeight: 1.08,
+	},
+	body: {
+		marginTop: "1.25rem",
+		maxWidth: "26rem",
+		fontSize: "1.0625rem",
+		lineHeight: 1.6,
+		color: color.paper70,
+	},
+
+	lift: { paddingBottom: { default: 0, "@media (min-width: 48rem)": "4rem" } },
+	split: {
+		display: "grid",
+		gridTemplateColumns: { default: "1fr", "@media (min-width: 48rem)": "1fr 1.15fr" },
+		alignItems: "end",
+		gap: { default: "3.5rem", "@media (min-width: 48rem)": "5rem" },
+	},
+	barge: {
+		order: { default: -1, "@media (min-width: 48rem)": 0 },
+		aspectRatio: "100 / 28",
+	},
+	skyline: {
+		aspectRatio: "100 / 29",
+		marginBottom: { default: "3.5rem", "@media (min-width: 48rem)": "5rem" },
+	},
+	waves: {
+		height: { default: "3rem", "@media (min-width: 48rem)": "4.5rem" },
+		marginBottom: "3rem",
+	},
+	indent: { marginLeft: { default: 0, "@media (min-width: 48rem)": "50%" } },
+
+	clips: { marginTop: { default: "2rem", "@media (min-width: 48rem)": "3rem" } },
+	clip: {
+		...focus,
+		display: "grid",
+		gridTemplateColumns: {
+			default: "1.75rem 1fr 4.5rem",
+			"@media (min-width: 48rem)": "4rem 1fr 11rem",
+		},
+		alignItems: "center",
+		columnGap: { default: "0.75rem", "@media (min-width: 48rem)": "1.5rem" },
+		paddingBlock: { default: "1.25rem", "@media (min-width: 48rem)": "1.75rem" },
+		borderTopWidth: "1px",
+		borderTopStyle: "solid",
+		borderTopColor: color.paper12,
+	},
+	clipNumber: { ...label, color: color.paper45 },
+	clipTitle: {
+		fontFamily: font.hero,
+		fontWeight: 900,
+		fontSize: { default: "1.25rem", "@media (min-width: 48rem)": "2rem" },
+		lineHeight: 1.12,
+		color: { default: color.paper, [stylex.when.ancestor(":hover")]: color.aqua },
+		transitionProperty: "color",
+		transitionDuration: "200ms",
+	},
+	clipCaption: {
+		display: { default: "none", "@media (min-width: 48rem)": "block" },
+		marginTop: "0.375rem",
+		fontSize: "0.9375rem",
+		color: color.paper65,
+	},
+	poster: {
+		width: "100%",
+		aspectRatio: "16 / 9",
+		objectFit: "cover",
+		filter: {
+			default: "grayscale(0.7) brightness(0.8)",
+			[stylex.when.ancestor(":hover")]: "none",
+			[stylex.when.ancestor(":focus-visible")]: "none",
+		},
+		opacity: {
+			default: 0.7,
+			[stylex.when.ancestor(":hover")]: 1,
+			[stylex.when.ancestor(":focus-visible")]: 1,
+		},
+		transitionProperty: "filter, opacity",
+		transitionDuration: "400ms",
+	},
+
+	press: {
+		display: "flex",
+		flexDirection: "column",
+		gap: { default: "5.5rem", "@media (min-width: 48rem)": "7rem" },
+		marginTop: { default: "3.5rem", "@media (min-width: 48rem)": "6rem" },
+	},
+	stop: {
+		width: { default: "auto", "@media (min-width: 48rem)": "42%" },
+		alignSelf: { default: "stretch", "@media (min-width: 48rem)": "flex-end" },
+	},
+	stopAlt: { alignSelf: { default: "stretch", "@media (min-width: 48rem)": "flex-start" } },
+	outlet: { ...label, color: color.paper65 },
+	quote: {
+		...focus,
+		display: "block",
+		marginTop: "0.875rem",
+		fontStyle: "italic",
+		fontSize: { default: "1.375rem", "@media (min-width: 48rem)": "1.75rem" },
+		lineHeight: 1.3,
+		textWrap: "balance",
+		color: { default: color.paper, ":hover": color.aqua },
+		transitionProperty: "color",
+		transitionDuration: "200ms",
+	},
+	byline: { marginTop: "0.875rem", fontSize: "0.9375rem", color: color.paper45 },
+
+	last: {
+		display: "grid",
+		placeItems: "center",
+		paddingTop: { default: "9rem", "@media (min-width: 48rem)": "13rem" },
+		paddingBottom: { default: "4rem", "@media (min-width: 48rem)": "6rem" },
+	},
+	circle: {
+		display: "grid",
+		placeItems: "center",
+		width: "min(100vw - 1.5rem, 30rem)",
+		aspectRatio: "1",
+		borderRadius: "50%",
+		textAlign: "center",
+	},
+	inner: { width: "66%" },
+	circleHeading: {
+		marginTop: "0.75rem",
+		fontFamily: font.hero,
+		fontWeight: 900,
+		fontSize: { default: "1.5rem", "@media (min-width: 48rem)": "2.25rem" },
+		lineHeight: 1.1,
+	},
+	field: {
+		display: "flex",
+		alignItems: "center",
+		marginTop: "1.5rem",
+		borderBottomWidth: "1px",
+		borderBottomStyle: "solid",
+		borderBottomColor: { default: color.paper45, ":focus-within": color.paper },
+	},
+	input: {
+		flex: 1,
+		minWidth: 0,
+		paddingBlock: "0.625rem",
+		backgroundColor: "transparent",
+		borderWidth: 0,
+		outline: "none",
+		color: color.paper,
+		fontFamily: font.sans,
+		fontSize: "1rem",
+		"::placeholder": { color: color.paper45 },
+	},
+	submit: {
+		...focus,
+		display: "grid",
+		placeItems: "center",
+		width: "2.5rem",
+		height: "2.5rem",
+		marginRight: "-0.5rem",
+		cursor: "pointer",
+		color: { default: color.paper70, ":hover": color.aqua },
+	},
+	arrow: { width: "1rem", height: "1rem" },
+	status: {
+		minHeight: "1.25rem",
+		marginTop: "0.625rem",
+		fontFamily: font.sans,
+		fontSize: "0.8125rem",
+		color: color.aqua,
+	},
+	srOnly: {
+		position: "absolute",
+		width: "1px",
+		height: "1px",
+		overflow: "hidden",
+		clip: "rect(0, 0, 0, 0)",
+		whiteSpace: "nowrap",
+	},
+	colophon: { ...label, paddingBottom: "3rem", textAlign: "center", color: color.paper45 },
+});

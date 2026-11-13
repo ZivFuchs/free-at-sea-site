@@ -1,0 +1,72 @@
+---
+import type { SiteSettings } from "@/lib/site";
+import { sx } from "@/lib/sx";
+import { styles } from "./FirstLight.styles";
+import { hero } from "./Hero.styles";
+import { HORIZON } from "./shared";
+
+/* No photograph: a drawn sea under whatever sky the visitor has right now. The sun or moon sits low behind
+ * the title, its light running down the water. `?hour=6.2` previews a time of day. */
+interface Props {
+	site: SiteSettings;
+}
+
+const { site } = Astro.props;
+---
+
+<section aria-label="Intro" data-first-light {...sx(hero.section, styles.section)} style={{ "--horizon": HORIZON }}>
+	<canvas aria-hidden="true" data-horizon={HORIZON} {...sx(hero.fill, hero.canvas)}></canvas>
+	<div {...sx(styles.sky)}>
+		<h1 data-anchor data-hero-fade {...sx(styles.title)}>{site.title}</h1>
+	</div>
+	<p data-hero-fade {...sx(styles.tagline)}>{site.tagline}</p>
+</section>
+
+<script>
+	import { runShader } from "@/lab/lib/gl";
+	import body from "./first-light.frag?raw";
+	import { fragment } from "./glsl";
+	import { onVariant, syncHeader } from "./lifecycle";
+	import { brightness, skyAt } from "./sky";
+
+	const localHour = () => {
+		const preview = Number(new URLSearchParams(location.search).get("hour") ?? Number.NaN);
+		if (Number.isFinite(preview)) return ((preview % 24) + 24) % 24;
+		const now = new Date();
+		return now.getHours() + now.getMinutes() / 60;
+	};
+
+	let started = false;
+	onVariant("first-light", (root) => {
+		const canvas = root.querySelector("canvas");
+		const section = root.querySelector<HTMLElement>("[data-first-light]");
+		// The loop pauses itself while the variant is hidden, so one start is enough.
+		if (!canvas || !section || started) return;
+		started = true;
+
+		const horizon = Number(canvas.dataset.horizon);
+		const sky = skyAt(localHour());
+		const shader = runShader(canvas, {
+			fragment: fragment(body),
+			fps: 30,
+			uniforms: () => ({
+				u_horizon: horizon,
+				u_zenith: sky.zenith,
+				u_glow: sky.glow,
+				u_far: sky.far,
+				u_near: sky.near,
+				u_light: sky.light,
+				u_orb: [0.5, sky.altitude * horizon],
+				u_radius: sky.radius,
+				u_night: sky.night,
+				u_power: sky.power,
+			}),
+		});
+		if (!shader) return;
+		canvas.setAttribute("data-ready", "");
+		const bright = brightness(sky);
+		section.style.setProperty("--title", `var(--app-${bright.horizon ? "ink" : "paper"})`);
+		section.dataset.top = bright.overhead ? "ink" : "paper";
+		syncHeader();
+	});
+</script>

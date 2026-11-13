@@ -1,0 +1,165 @@
+---
+import { getImage } from "astro:assets";
+import still from "@/assets/hero/barge-from-afar.jpg";
+import { rowMarker, styles } from "@/lab/ascii/Ascii.styles";
+import LabLayout from "@/lab/LabLayout.astro";
+import { getClips } from "@/lib/clips";
+import { NAV } from "@/lib/nav";
+import { newsletterForm } from "@/lib/newsletter";
+import { getPress } from "@/lib/press";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+
+const [site, clips, press, photo] = await Promise.all([
+	getSite(),
+	getClips(),
+	getPress(),
+	getImage({ src: still, width: 1440, format: "jpg" }),
+]);
+
+const pad = (n: number) => String(n).padStart(2, "0");
+const DASHES = "─".repeat(240);
+const CAPTIONS = [
+	"From far enough away, the ocean is only texture.",
+	"Come closer and something resolves: a deck, a few containers, people.",
+	"One barge, anchored in open water. The film begins here.",
+];
+const sections = { premise: "01", clips: "02", press: "03", newsletter: "04" };
+---
+
+<LabLayout slug="ascii">
+	<div data-ascii data-title={site.title} data-photo={photo.src} {...sx(styles.root)}>
+		<canvas data-ascii-canvas aria-hidden="true" {...sx(styles.canvas)}></canvas>
+
+		<header {...sx(styles.header)}>
+			<a href="/lab/ascii" {...sx(styles.mark)}>{site.title}</a>
+			<nav aria-label="Main" {...sx(styles.nav)}>
+				{
+					NAV.map(({ label, href }) => (
+						<a href={href.replace("/", "")} {...sx(styles.navLink)}>
+							<span aria-hidden="true" {...sx(styles.bracket)}>[</span>{label}<span aria-hidden="true" {...sx(styles.bracket)}>]</span>
+						</a>
+					))
+				}
+			</nav>
+		</header>
+
+		<main {...sx(styles.layer)}>
+			<section aria-label="Intro" {...sx(styles.hero)}>
+				<h1 {...sx(styles.title)}>{site.title}</h1>
+				<div {...sx(styles.heroFoot)}>
+					<p {...sx(styles.tagline)}>
+						<span aria-hidden="true" {...sx(styles.prompt)}>&gt;</span>{site.tagline}<span aria-hidden="true" {...sx(styles.caret)}></span>
+					</p>
+					<p aria-hidden="true" data-ascii-readout {...sx(styles.readout)}></p>
+				</div>
+			</section>
+
+			<section aria-label="Approach" data-ascii-resolve {...sx(styles.resolve)}>
+				<div {...sx(styles.stage)}>
+					{
+						CAPTIONS.map((text, i) => (
+							<p data-ascii-caption {...sx(styles.caption)}>
+								<span aria-hidden="true" {...sx(styles.captionNo)}>
+									{pad(i + 1)} / {pad(CAPTIONS.length)}
+								</span>
+								{text}
+							</p>
+						))
+					}
+				</div>
+			</section>
+
+			<div data-ascii-content {...sx(styles.content)}>
+				<section aria-labelledby="premise" {...sx(styles.panel)}>
+					<div {...sx(styles.rule)}>
+						<span aria-hidden="true" {...sx(styles.number)}>{sections.premise}</span>
+						<h2 id="premise" {...sx(styles.heading)}>Premise</h2>
+						<span aria-hidden="true" {...sx(styles.dashes)}>{DASHES}</span>
+					</div>
+					<p {...sx(styles.lede)}>Two hundred nautical miles out, the last national claim on the water ends.</p>
+					<p {...sx(styles.body)}>
+						Seasteading is the attempt to build permanent settlements there, on the open ocean, outside the territory of
+						any nation. {site.title} follows the people trying to do it.
+					</p>
+				</section>
+
+				{
+					clips.length > 0 && (
+						<section id="clips" aria-labelledby="clips-heading" {...sx(styles.panel, styles.right)}>
+							<div {...sx(styles.rule)}>
+								<span aria-hidden="true" {...sx(styles.number)}>{sections.clips}</span>
+								<h2 id="clips-heading" {...sx(styles.heading)}>Clips</h2>
+								<span aria-hidden="true" {...sx(styles.dashes)}>{DASHES}</span>
+							</div>
+							<ul {...sx(styles.list)}>
+								{clips.map(({ title, url, thumbnail }, i) => (
+									<li>
+										<a href={url} target="_blank" rel="noopener" data-ascii-clip data-poster={thumbnail ?? ""} {...sx(rowMarker, styles.row)}>
+											<span aria-hidden="true" {...sx(styles.rowNo)}>{pad(i + 1)}</span>
+											<span {...sx(styles.rowTitle)}>{title}</span>
+											<span {...sx(styles.rowMeta)}>Play ▸</span>
+										</a>
+									</li>
+								))}
+							</ul>
+							<p aria-hidden="true" {...sx(styles.hint)}>Select a clip: its frame draws on the grid behind.</p>
+						</section>
+					)
+				}
+
+				{
+					press.length > 0 && (
+						<section id="press" aria-labelledby="press-heading" {...sx(styles.panel)}>
+							<div {...sx(styles.rule)}>
+								<span aria-hidden="true" {...sx(styles.number)}>{sections.press}</span>
+								<h2 id="press-heading" {...sx(styles.heading)}>Press</h2>
+								<span aria-hidden="true" {...sx(styles.dashes)}>{DASHES}</span>
+							</div>
+							<ul {...sx(styles.list)}>
+								{press.map(({ headline, url, outlet, dateLabel, quote }, i) => (
+									<li>
+										<a href={url} target="_blank" rel="noopener" {...sx(rowMarker, styles.row)}>
+											<span aria-hidden="true" {...sx(styles.rowNo)}>{pad(i + 1)}</span>
+											<span {...sx(styles.rowTitle)}>{headline}</span>
+											<span {...sx(styles.rowMeta)}>{[outlet, dateLabel].filter(Boolean).join(" · ")}</span>
+											{quote && <span {...sx(styles.quote)}>“{quote}”</span>}
+										</a>
+									</li>
+								))}
+							</ul>
+						</section>
+					)
+				}
+
+				<section id="newsletter" aria-labelledby="newsletter-heading" {...sx(styles.panel, styles.right)}>
+					<div {...sx(styles.rule)}>
+						<span aria-hidden="true" {...sx(styles.number)}>{sections.newsletter}</span>
+						<h2 id="newsletter-heading" {...sx(styles.heading)}>Newsletter</h2>
+						<span aria-hidden="true" {...sx(styles.dashes)}>{DASHES}</span>
+					</div>
+					<p {...sx(styles.lede)}>Word from the water.</p>
+					<form {...newsletterForm()} {...sx(styles.form)}>
+						<div {...sx(styles.field)}>
+							<label for="ascii-email" {...sx(styles.fieldLabel)}>&gt; Email:</label>
+							<input id="ascii-email" type="email" name="email" autocomplete="email" placeholder="you@example.com" required {...sx(styles.input)} />
+							<button type="submit" {...sx(styles.submit)}>Join</button>
+						</div>
+						<p data-newsletter-status aria-live="polite" {...sx(styles.status)}></p>
+					</form>
+				</section>
+			</div>
+		</main>
+
+		<footer {...sx(styles.footer)}>
+			<span>© {new Date().getFullYear()} {site.title}</span>
+			{site.email && <a href={`mailto:${site.email}`}>{site.email}</a>}
+			<span aria-hidden="true">EOF</span>
+		</footer>
+	</div>
+</LabLayout>
+
+<script>
+	import "@/lab/ascii/client";
+	import "@/lib/newsletter.client";
+</script>

@@ -1,0 +1,124 @@
+---
+import Clips from "@/components/clips/Clips.astro";
+import Footer from "@/components/footer/Footer.astro";
+import Header from "@/components/header/Header.astro";
+import Newsletter from "@/components/newsletter/Newsletter.astro";
+import Press from "@/components/press/Press.astro";
+import LabLayout from "@/lab/LabLayout.astro";
+import { styles } from "@/lab/seastead/Seastead.styles";
+import { CALLOUTS, STOPS } from "@/lab/seastead/tour";
+import { getClips } from "@/lib/clips";
+import { getHome } from "@/lib/home";
+import { getPress } from "@/lib/press";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+
+const [site, home, clips, press] = await Promise.all([
+	getSite(),
+	getHome(),
+	getClips(),
+	getPress(),
+]);
+const pad = (n: number) => String(n).padStart(2, "0");
+const last = STOPS.length - 1;
+---
+
+<LabLayout slug="seastead">
+	<Header overlay />
+	<main id="main">
+		<div data-seastead {...sx(styles.tour)}>
+			<div data-stage aria-hidden="true" {...sx(styles.stage)}>
+				<canvas {...sx(styles.canvas)}></canvas>
+				<div {...sx(styles.scrim)}></div>
+				<div {...sx(styles.sheet)}>
+					<span {...sx(styles.crop, styles.cropTL)}></span>
+					<span {...sx(styles.crop, styles.cropTR)}></span>
+					<span {...sx(styles.crop, styles.cropBL)}></span>
+					<span {...sx(styles.crop, styles.cropBR)}></span>
+					<p {...sx(styles.scale)}><span {...sx(styles.rule)}></span>0 — 50 m</p>
+					<div {...sx(styles.block)}>
+						<span {...sx(styles.cell, styles.cellWide)}>Seastead · General arrangement</span>
+						<span {...sx(styles.cell)}>9 pontoons · 18 m hex</span>
+						<span {...sx(styles.cell, styles.cellRight)}>Sheet 01</span>
+						<span {...sx(styles.cell)}>High seas, beyond 200 nm</span>
+						<span {...sx(styles.cell, styles.cellRight)}>1 : 500</span>
+					</div>
+				</div>
+				<svg {...sx(styles.overlay, styles.callouts)}>
+					{CALLOUTS.map(() => (
+						<>
+							<line data-leader {...sx(styles.leader)} />
+							<circle data-dot r="3" {...sx(styles.dot)} />
+						</>
+					))}
+				</svg>
+				{CALLOUTS.map(({ label, detail, offset }) => (
+					<p data-callout {...sx(styles.callout, offset[0] < 0 && styles.calloutLeft)}>
+						{label}
+						{detail && <span {...sx(styles.calloutDetail)}>{detail}</span>}
+					</p>
+				))}
+			</div>
+
+			<div {...sx(layout.container, styles.sections)}>
+				{STOPS.map(({ id, eyebrow, heading, body }, i) =>
+					i === 0 ? (
+						<section id={id} data-stop aria-label="Intro" {...sx(styles.section, styles.hero)}>
+							<div {...sx(styles.copy, styles.heroCopy)}>
+								<p data-hero-fade {...sx(styles.eyebrow)}>{eyebrow}</p>
+								<h1 data-hero-title data-hero-fade {...sx(styles.title)}>{site.title}</h1>
+								<p data-hero-fade {...sx(styles.tagline)}>{site.tagline}</p>
+							</div>
+							<p aria-hidden="true" data-hero-fade {...sx(styles.cue)}>Scroll to build<span {...sx(styles.cueLine)}></span></p>
+						</section>
+					) : (
+						<section id={id} data-stop aria-labelledby={`${id}-heading`} {...sx(styles.section, i === last && styles.sectionLast)}>
+							<div {...sx(styles.copy)}>
+								<p {...sx(styles.eyebrow)}>
+									{i < last && <span {...sx(styles.number)}>{pad(i)}</span>}
+									{eyebrow}
+								</p>
+								<h2 id={`${id}-heading`} {...sx(styles.heading)}>{heading}</h2>
+								<p {...sx(styles.body)}>{body}</p>
+								{i === last && clips.length > 0 && <a href="#clips" {...sx(styles.more)}>Watch the clips <span aria-hidden="true">↓</span></a>}
+							</div>
+						</section>
+					),
+				)}
+			</div>
+		</div>
+
+		<div {...sx(styles.rest)}>
+			<Clips clips={clips} />
+			<Press items={press} />
+			<Newsletter home={home} />
+		</div>
+	</main>
+	<Footer />
+</LabLayout>
+
+<script>
+	// The site header darkens its text over a light hero photo; this hero is always dark.
+	document.querySelector<HTMLElement>("[data-site-header]")?.style.removeProperty("--top");
+
+	const tour = document.querySelector<HTMLElement>("[data-seastead]");
+	const stage = tour?.querySelector<HTMLElement>("[data-stage]");
+	const canvas = stage?.querySelector("canvas");
+	if (tour && stage && canvas) {
+		const all = <T extends Element>(selector: string) => [...tour.querySelectorAll<T>(selector)];
+		import("@/lab/seastead/scene")
+			.then(({ mount }) => {
+				mount({
+					stage,
+					canvas,
+					sections: all<HTMLElement>("[data-stop]"),
+					labels: all<HTMLElement>("[data-callout]"),
+					leaders: all<SVGLineElement>("[data-leader]"),
+					dots: all<SVGCircleElement>("[data-dot]"),
+				});
+				canvas.setAttribute("data-live", "");
+			})
+			.catch((error) => console.warn("Seastead: 3D scene unavailable", error));
+	}
+</script>

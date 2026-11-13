@@ -1,0 +1,98 @@
+---
+import Footer from "@/components/footer/Footer.astro";
+import Header from "@/components/header/Header.astro";
+import Newsletter from "@/components/newsletter/Newsletter.astro";
+import { styles } from "@/lab/buoy/Buoy.styles";
+import Tank from "@/lab/buoy/Tank.astro";
+import LabLayout from "@/lab/LabLayout.astro";
+import { getClips } from "@/lib/clips";
+import { getHome } from "@/lib/home";
+import { getPress } from "@/lib/press";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+
+const [site, home, clips, press] = await Promise.all([
+	getSite(),
+	getHome(),
+	getClips(),
+	getPress(),
+]);
+const words = site.title.toUpperCase().split(/\s+/);
+const pad = (n: number) => String(n).padStart(2, "0");
+---
+
+<LabLayout slug="buoy">
+	<Header />
+	<main>
+		<section aria-label="Intro" {...sx(styles.hero)}>
+			<h1 {...sx(styles.srOnly)}>{site.title}</h1>
+			<div {...sx(styles.sky)}></div>
+			<div aria-hidden="true">
+				<Tank label={site.title} gap={0.07} unitGap={0.5} air={1.5} depth={0.9}>
+					{words.flatMap((word, w) => [...word].map((glyph) => (
+						<li data-body data-unit={w} data-density="0.42" data-keel="0.3" {...sx(styles.letter)}>{glyph}</li>
+					)))}
+				</Tank>
+			</div>
+			<div {...sx(layout.container, styles.caption)}>
+				<p {...sx(styles.tagline)}>{site.tagline}</p>
+				<p {...sx(styles.hint)}>Drag a letter. Tap the water.</p>
+				<button type="button" data-tilt hidden {...sx(styles.tilt)}>Tilt to pour</button>
+			</div>
+		</section>
+
+		<section {...sx(layout.container, styles.intro)}>
+			<p {...sx(styles.lede)}>A seastead is a home that floats. So does everything on this page.</p>
+			<p {...sx(styles.prose)}>
+				Seasteading is the effort to build lasting settlements on the open ocean, beyond any nation's waters.
+				It starts with the oldest rule at sea: whatever displaces more water than it weighs stays up.
+			</p>
+		</section>
+
+		{clips.length > 0 && (
+			<section id="clips" aria-labelledby="clips-heading" {...sx(styles.section)}>
+				<div {...sx(layout.container)}>
+					<h2 id="clips-heading" {...sx(styles.heading)}>Clips</h2>
+					<p {...sx(styles.note)}>From the film</p>
+				</div>
+				<Tank label="Clips" air={1.1} depth={0.75}>
+					{clips.map(({ title, url, thumbnail }, i) => (
+						<li data-body data-density="0.3" data-keel="0.18" {...sx(styles.clip)}>
+							<a href={url} target="_blank" rel="noopener" draggable="false" {...sx(styles.clipLink)}>
+								{thumbnail && <img src={thumbnail} alt="" loading="lazy" decoding="async" draggable="false" {...sx(styles.poster)} />}
+								<span {...sx(styles.clipLabel)}>
+									<span {...sx(styles.index)}>{pad(i + 1)}</span>
+									<span {...sx(styles.clipTitle)}>{title}</span>
+								</span>
+							</a>
+						</li>
+					))}
+				</Tank>
+			</section>
+		)}
+
+		{press.length > 0 && (
+			<section id="press" aria-labelledby="press-heading" {...sx(styles.section)}>
+				<div {...sx(layout.container)}>
+					<h2 id="press-heading" {...sx(styles.heading)}>Press</h2>
+					<p {...sx(styles.note)}>Afloat in the news</p>
+				</div>
+				<Tank label="Press" air={1.05} depth={0.7}>
+					{press.map(({ outlet, headline, url, dateLabel }) => (
+						<li data-body data-density="0.25" data-keel="0.28" {...sx(styles.press)}>
+							<a href={url} target="_blank" rel="noopener" draggable="false" {...sx(styles.pressLink)}>
+								<span {...sx(styles.outlet)}>{outlet}</span>
+								<span {...sx(styles.headline)}>{headline}</span>
+								{dateLabel && <span {...sx(styles.date)}>{dateLabel}</span>}
+							</a>
+						</li>
+					))}
+				</Tank>
+			</section>
+		)}
+
+		<Newsletter home={home} />
+	</main>
+	<Footer />
+</LabLayout>

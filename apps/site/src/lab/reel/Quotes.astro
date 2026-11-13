@@ -1,0 +1,47 @@
+---
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+import type { ReelPress } from "./content";
+import { quoteMarker, styles } from "./Quotes.styles";
+
+/* Press as pull-quotes (the article's quote, else its headline), each opening its own page. */
+interface Props {
+	press: ReelPress[];
+}
+
+const { press } = Astro.props;
+---
+
+<section id="press" aria-labelledby="press-heading" {...sx(styles.section)}>
+	<div {...sx(layout.container)}>
+		<h2 id="press-heading" {...sx(styles.heading)}>Press</h2>
+		<ul {...sx(styles.list)}>
+			{press.map(({ anchor, path, quote, headline, outlet, kind, dateLabel, thumbnail, index }) => (
+				<li id={anchor} {...sx(styles.item, index % 2 === 1 && styles.shifted)}>
+					<a href={path} {...sx(quoteMarker, styles.link)}>
+						<p data-vt-for={path} data-vt="reel-title" {...sx(styles.quote)}>
+							{quote ? `“${quote}”` : headline}
+						</p>
+						<div {...sx(styles.by)}>
+							{thumbnail && (
+								<img
+									src={thumbnail.src}
+									alt=""
+									loading="lazy"
+									decoding="async"
+									data-vt-for={path}
+									data-vt="reel-poster"
+									{...sx(styles.thumb)}
+								/>
+							)}
+							<p {...sx(styles.source)}>
+								<span {...sx(styles.outlet)}>{outlet}</span>
+								<span {...sx(styles.meta)}>{[kind, dateLabel].filter(Boolean).join(" · ")}</span>
+							</p>
+						</div>
+					</a>
+				</li>
+			))}
+		</ul>
+	</div>
+</section>

@@ -1,0 +1,105 @@
+---
+import Clips from "@/components/clips/Clips.astro";
+import Footer from "@/components/footer/Footer.astro";
+import Header from "@/components/header/Header.astro";
+import { formMarker, styles as newsletter } from "@/components/newsletter/Newsletter.styles";
+import Press from "@/components/press/Press.astro";
+import LabLayout from "@/lab/LabLayout.astro";
+import { clock, cssVars, HORIZON, sample } from "@/lab/swell/day";
+import { styles } from "@/lab/swell/Swell.styles";
+import { getClips } from "@/lib/clips";
+import { newsletterForm } from "@/lib/newsletter";
+import { getPress } from "@/lib/press";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+
+const [site, clips, press] = await Promise.all([getSite(), getClips(), getPress()]);
+const dawn = sample(0);
+---
+
+<LabLayout slug="swell">
+	<div data-swell {...sx(styles.stage)} style={{ ...cssVars(dawn), "--sw-h": HORIZON }}>
+		<div aria-hidden="true" {...sx(styles.backdrop)}><canvas {...sx(styles.canvas)}></canvas></div>
+
+		<Header overlay />
+
+		<div data-title {...sx(styles.titleLayer)}>
+			<div {...sx(styles.word)}>
+				<h1 {...sx(styles.title)}>{site.title}</h1>
+				<span aria-hidden="true" {...sx(styles.reflection)}>{site.title}</span>
+			</div>
+			<p {...sx(styles.tagline)}>{site.tagline}</p>
+		</div>
+		<svg aria-hidden="true" {...sx(styles.filter)}>
+			<filter id="swell-ripple" x="-5%" y="-20%" width="110%" height="140%">
+				<feTurbulence type="fractalNoise" baseFrequency="0.004 0.11" numOctaves="2" seed="4" result="swell" />
+				<feDisplacementMap in="SourceGraphic" in2="swell" scale="14" xChannelSelector="R" yChannelSelector="G" />
+			</filter>
+		</svg>
+
+		<main id="main" {...sx(styles.main)}>
+			<section aria-label="Intro" {...sx(styles.hero)}>
+				<p {...sx(styles.cue)}>Scroll to turn the day<span {...sx(styles.cueLine)}></span></p>
+			</section>
+
+			<section {...sx(layout.container, styles.open)}>
+				<p {...sx(styles.kicker)}>The line</p>
+				<h2 {...sx(styles.line)}>Twelve nautical miles out, a nation’s waters end. Two hundred miles out, so does its claim on the sea.</h2>
+				<p {...sx(styles.aside)}>Past that line is the high sea: nearly half the surface of the planet, belonging to no one.</p>
+			</section>
+
+			<div {...sx(styles.panel)}><Clips clips={clips} /></div>
+
+			<section {...sx(layout.container, styles.open)}>
+				<p {...sx(styles.kicker)}>The idea</p>
+				<h2 {...sx(styles.line)}>Seasteading is the plan to live out here: afloat, for good, answerable to no shoreline.</h2>
+				<p {...sx(styles.aside)}>This film follows the people trying to build it.</p>
+			</section>
+
+			<div {...sx(styles.panel)}><Press items={press} /></div>
+
+			<section id="newsletter" aria-labelledby="newsletter-heading" {...sx(layout.container, styles.signup)}>
+				<div {...sx(newsletter.card, styles.card)}>
+					<h2 id="newsletter-heading" {...sx(newsletter.heading)}>Word from the water</h2>
+					<p {...sx(newsletter.sub)}>Join the newsletter</p>
+					<form {...newsletterForm()} {...sx(formMarker, newsletter.form)}>
+						<div {...sx(newsletter.field)}>
+							<label for="newsletter-email" {...sx(newsletter.srOnly)}>Email address</label>
+							<input id="newsletter-email" type="email" name="email" autocomplete="email" placeholder="you@example.com" required {...sx(newsletter.input)} />
+							<button type="submit" aria-label="Subscribe" {...sx(newsletter.button)}>
+								<svg viewBox="0 0 16 16" aria-hidden="true" {...sx(newsletter.arrow)}>
+									<path d="M2 8h11M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" />
+								</svg>
+							</button>
+						</div>
+						<div {...sx(newsletter.statusRow)}>
+							<svg viewBox="0 0 16 16" aria-hidden="true" {...sx(newsletter.check)}>
+								<path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="1.75" />
+							</svg>
+							<p data-newsletter-status aria-live="polite" {...sx(newsletter.status)}></p>
+						</div>
+					</form>
+				</div>
+			</section>
+
+			<section {...sx(layout.container, styles.end)}>
+				<p {...sx(styles.kicker)}>{site.title} · {site.tagline}</p>
+				<h2 {...sx(styles.line)}>The sea keeps no borders.</h2>
+			</section>
+		</main>
+
+		<Footer />
+
+		<p aria-hidden="true" {...sx(styles.clock)}>
+			<span {...sx(styles.dot)}></span>
+			<span data-clock-time>{clock(dawn)}</span>
+			<span data-clock-phase {...sx(styles.phase)}>{dawn.phase}</span>
+		</p>
+	</div>
+</LabLayout>
+
+<script>
+	import "@/lib/newsletter.client";
+	import "@/lab/swell/client";
+</script>

@@ -1,0 +1,71 @@
+---
+import type { Clip } from "@/lib/clips";
+import type { PressItem } from "@/lib/press";
+import type { SiteSettings } from "@/lib/site";
+import { sx } from "@/lib/sx";
+import { credits as styles } from "./Titles.styles";
+
+/* End-credits roll: the page's own scroll rolls it. Crew roles are placeholders until real credits exist. */
+interface Props {
+	site: SiteSettings;
+	clips: Clip[];
+	press: PressItem[];
+}
+
+const { site, clips, press } = Astro.props;
+const ROLES = [
+	"Directed by",
+	"Produced by",
+	"Cinematography",
+	"Edited by",
+	"Original music",
+	"Sound",
+];
+const outlets = [...new Map(press.map(({ outlet, url }) => [outlet, url])).entries()].filter(
+	([outlet]) => outlet,
+);
+---
+
+<div aria-hidden="true" {...sx(styles.dim)}></div>
+<section id="credits" aria-labelledby="credits-heading" {...sx(styles.section)}>
+	<div aria-hidden="true" {...sx(styles.gate)}></div>
+	<div {...sx(styles.roll)}>
+		<div>
+			<h2 id="credits-heading" {...sx(styles.film)}>{site.title}</h2>
+			<p {...sx(styles.kind)}>{site.tagline}</p>
+		</div>
+		{
+			ROLES.map((role) => (
+				<div>
+					<p {...sx(styles.role)}>{role}</p>
+					<p {...sx(styles.name, styles.pending)}>To be announced</p>
+				</div>
+			))
+		}
+		{
+			clips.length > 0 && (
+				<div>
+					<p {...sx(styles.role)}>Clips</p>
+					{clips.map(({ title, url }) => (
+						<p {...sx(styles.name)}><a href={url} {...sx(styles.link)}>{title}</a></p>
+					))}
+				</div>
+			)
+		}
+		{
+			outlets.length > 0 && (
+				<div>
+					<p {...sx(styles.role)}>As covered by</p>
+					{outlets.map(([outlet, url]) => (
+						<p {...sx(styles.name)}>{url ? <a href={url} {...sx(styles.link)}>{outlet}</a> : outlet}</p>
+					))}
+				</div>
+			)
+		}
+		<div>
+			<p {...sx(styles.role)}>Filmed on</p>
+			<p {...sx(styles.name)}>The open sea</p>
+		</div>
+		<p {...sx(styles.end)}>© {new Date().getFullYear()} {site.title}</p>
+	</div>
+</section>

@@ -1,0 +1,155 @@
+---
+import Clips from "@/components/clips/Clips.astro";
+import Footer from "@/components/footer/Footer.astro";
+import Newsletter from "@/components/newsletter/Newsletter.astro";
+import Press from "@/components/press/Press.astro";
+import LabLayout from "@/lab/LabLayout.astro";
+import { FIGURES, FIXES, NAMED } from "@/lab/stars/figures";
+import { sextantMarker, styles } from "@/lab/stars/Stars.styles";
+import { coordinates, SITE } from "@/lab/stars/sky";
+import { getClips } from "@/lib/clips";
+import { getHome } from "@/lib/home";
+import { NAV } from "@/lib/nav";
+import { getPress } from "@/lib/press";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+
+const [site, home, clips, press] = await Promise.all([
+	getSite(),
+	getHome(),
+	getClips(),
+	getPress(),
+]);
+
+const BAYER: Record<(typeof FIXES)[number], string> = {
+	acrux: "α Crucis",
+	canopus: "α Carinae",
+	achernar: "α Eridani",
+};
+const fixes = FIXES.map((key) => ({ key, name: NAMED[key], bayer: BAYER[key] }));
+---
+
+<LabLayout slug="stars">
+	<div data-night {...sx(styles.night)}>
+		<canvas data-sky aria-hidden="true" {...sx(styles.canvas)}></canvas>
+		<div aria-hidden="true" {...sx(styles.layer)}>
+			{FIGURES.map(({ name }) => <span data-figure={name} {...sx(styles.label, styles.figure)}>{name}</span>)}
+			{Object.entries(NAMED).map(([key, name]) => <span data-star={key} {...sx(styles.label)}>{name}</span>)}
+		</div>
+		<div data-sextant aria-hidden="true" {...sx(sextantMarker, styles.sextant)}>
+			<span {...sx(styles.ring)}></span>
+			<span {...sx(styles.reading)}>
+				<span data-sextant-name {...sx(styles.readingName)}></span>
+				<span data-sextant-alt {...sx(styles.readingValue)}></span>
+			</span>
+		</div>
+
+		<header {...sx(styles.header)}>
+			<div {...sx(layout.container)}>
+				<div {...sx(styles.bar)}>
+					<a href="/lab/stars" {...sx(styles.wordmark)}>{site.title}</a>
+					<nav aria-label="Main" {...sx(styles.nav)}>
+						{NAV.map(({ label, href }) => <a href={href.slice(1)} {...sx(styles.navLink)}>{label}</a>)}
+					</nav>
+				</div>
+				<p {...sx(styles.log)}>
+					<span>{SITE.name} <span {...sx(styles.logValue)}>{coordinates(SITE.lat, SITE.lon)}</span></span>
+					<span>Local <span data-readout="time" {...sx(styles.logValue)}>--:--</span></span>
+					<span>LST <span data-readout="lst" {...sx(styles.logValue)}>--h --m</span></span>
+				</p>
+			</div>
+		</header>
+
+		<main id="main" {...sx(styles.main)}>
+			<section aria-label="Intro" {...sx(styles.hero)}>
+				<div {...sx(styles.heroCopy)}>
+					<p {...sx(styles.tagline)}>{site.tagline}</p>
+					<h1 {...sx(styles.title)}>{site.title}</h1>
+				</div>
+				<p {...sx(styles.below)}>Looking south · Scroll to turn the night</p>
+			</section>
+
+			<div {...sx(styles.veil)}>
+				<section aria-labelledby="reckoning" {...sx(layout.container, styles.passage)}>
+					<div>
+						<p {...sx(styles.under, styles.passageUnder)}>
+							<span {...sx(styles.underStar)}></span>Under Acrux <span {...sx(styles.underMeta)}>the foot of the Cross</span>
+						</p>
+						<h2 id="reckoning" {...sx(styles.heading)}>No country to steer by</h2>
+					</div>
+					<div {...sx(styles.prose)}>
+						<p>
+							This is the sky over {SITE.name}, the place in the ocean farthest from any shore. There is no
+							coastline to follow out here and no flag to answer to.
+						</p>
+						<p>
+							For most of history a ship this far out found itself one way. Measure the angle between a star
+							and the horizon. Do it for three stars, and you know where you are on a planet that is mostly water.
+						</p>
+						<p>
+							Seasteaders are setting out for the same waters with the same question: where are we, when we are
+							on nobody’s map?
+						</p>
+						<table {...sx(styles.fixes)}>
+							<caption {...sx(styles.fixCaption)}>
+								Three stars for a fix, as they stand at this point in the night. Keep scrolling.
+							</caption>
+							<thead>
+								<tr {...sx(styles.fixRow)}>
+									<th scope="col" {...sx(styles.fixHead)}>Star</th>
+									<th scope="col" {...sx(styles.fixHead, styles.right)}>Altitude</th>
+									<th scope="col" {...sx(styles.fixHead, styles.right)}>Bearing</th>
+								</tr>
+							</thead>
+							<tbody>
+								{
+									fixes.map(({ key, name, bayer }) => (
+										<tr data-fix={key} {...sx(styles.fixRow)}>
+											<th scope="row" {...sx(styles.fixName)}>
+												{name}
+												<span {...sx(styles.fixBayer)}>{bayer}</span>
+											</th>
+											<td data-fix-alt {...sx(styles.fixValue, styles.right)}>–</td>
+											<td data-fix-az {...sx(styles.fixValue, styles.right)}>–</td>
+										</tr>
+									))
+								}
+							</tbody>
+						</table>
+					</div>
+				</section>
+			</div>
+
+			<div {...sx(layout.container, styles.window)}>
+				<p {...sx(styles.windowLine)}>The Southern Cross never sets here. It only turns.</p>
+				<p {...sx(styles.windowNote)}>Move over the sky to take a sight</p>
+			</div>
+
+			<div {...sx(styles.veil)}>
+				<p {...sx(layout.container, styles.under)}>
+					<span {...sx(styles.underStar)}></span>Under Canopus <span {...sx(styles.underMeta)}>second brightest star in the sky</span>
+				</p>
+				<Clips clips={clips} />
+				<p {...sx(layout.container, styles.under, styles.underTight)}>
+					<span {...sx(styles.underStar)}></span>Under Achernar <span {...sx(styles.underMeta)}>the river’s end</span>
+				</p>
+				<Press items={press} />
+			</div>
+
+			<div data-dawn {...sx(layout.container, styles.window)}>
+				<p {...sx(styles.windowLine)}>First light. The stars go out one by one, brightest last.</p>
+			</div>
+
+			<Newsletter home={home} />
+		</main>
+		<div {...sx(styles.footer)}><Footer /></div>
+	</div>
+</LabLayout>
+
+<script>
+	import { startSky } from "@/lab/stars/scene";
+
+	const root = document.querySelector<HTMLElement>("[data-night]");
+	if (root) startSky(root);
+</script>

@@ -1,0 +1,17 @@
+---
+import Footer from "@/components/footer/Footer.astro";
+import LabLayout from "@/lab/LabLayout.astro";
+import Passage from "@/lab/panorama/Passage.astro";
+import { getClips } from "@/lib/clips";
+import { getPress } from "@/lib/press";
+import { getSite } from "@/lib/site";
+
+const [site, clips, press] = await Promise.all([getSite(), getClips(), getPress()]);
+---
+
+<LabLayout slug="panorama">
+	<main id="top">
+		<Passage site={site} clips={clips} press={press} />
+	</main>
+	<Footer />
+</LabLayout>

@@ -1,0 +1,144 @@
+---
+import LabLayout from "@/lab/LabLayout.astro";
+import { rowMarker, styles } from "@/lab/line/Line.styles";
+import { getClips } from "@/lib/clips";
+import { NAV } from "@/lib/nav";
+import { newsletterForm } from "@/lib/newsletter";
+import { getPress } from "@/lib/press";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+
+const [site, clips, press] = await Promise.all([getSite(), getClips(), getPress()]);
+const pad = (n: number) => String(n).padStart(2, "0");
+const anchors = NAV.map(({ label, href }) => ({ label, href: href.replace("/", "") }));
+---
+
+<LabLayout slug="line">
+	<div data-line-root {...sx(styles.root)}>
+		<svg data-line-svg aria-hidden="true" {...sx(styles.svg)}>
+			<path data-line-path {...sx(styles.path)}></path>
+			{
+				press.map(({ dateLabel }) => (
+					<g data-line-tick {...sx(styles.tick)}>
+						<circle r="3.5" {...sx(styles.tickRing)} />
+						<text x="14" y="4" {...sx(styles.tickLabel)}>{dateLabel}</text>
+					</g>
+				))
+			}
+			<circle data-line-tip r="2.5" {...sx(styles.tip)}></circle>
+		</svg>
+
+		<div {...sx(styles.content)}>
+			<header {...sx(styles.hero)}>
+				<nav aria-label="Main" {...sx(styles.gutter, styles.nav)}>
+					{anchors.map(({ label, href }) => <a href={href} {...sx(styles.navLink)}>{label}</a>)}
+				</nav>
+				<div {...sx(styles.titleSize)}>
+					<h1 {...sx(styles.title)}><span data-line="title">{site.title}</span></h1>
+					<div data-line="horizon" {...sx(styles.horizon)}></div>
+				</div>
+				<p {...sx(styles.tagline)}>{site.tagline}</p>
+			</header>
+
+			<main>
+				<section aria-labelledby="line-vessel" {...sx(styles.gutter, styles.section, styles.split)}>
+					<div {...sx(styles.lift)}>
+						<p {...sx(styles.eyebrow)}>The vessel</p>
+						<h2 id="line-vessel" {...sx(styles.heading)}>It starts with one barge.</h2>
+						<p {...sx(styles.body)}>
+							Past the last coastline lie the high seas, water that belongs to no nation. This film follows the
+							people trying to make a home there.
+						</p>
+					</div>
+					<div data-line="barge" {...sx(styles.barge)}></div>
+				</section>
+
+				{
+					clips.length > 0 && (
+						<section id="clips" aria-labelledby="line-clips" {...sx(styles.gutter, styles.section)}>
+							<div data-line="waves" {...sx(styles.waves)} />
+							<p {...sx(styles.eyebrow)}>From the film</p>
+							<h2 id="line-clips" {...sx(styles.heading)}>Clips</h2>
+							<ul {...sx(styles.clips)}>
+								{clips.map(({ title, caption, url, thumbnail }, i) => (
+									<li>
+										<a href={url} target="_blank" rel="noopener" {...sx(rowMarker, styles.clip)}>
+											<span {...sx(styles.clipNumber)}>{pad(i + 1)}</span>
+											<span>
+												<span {...sx(styles.clipTitle)}>{title}</span>
+												{caption && <p {...sx(styles.clipCaption)}>{caption}</p>}
+											</span>
+											{thumbnail && <img src={thumbnail} alt="" loading="lazy" decoding="async" {...sx(styles.poster)} />}
+										</a>
+									</li>
+								))}
+							</ul>
+						</section>
+					)
+				}
+
+				<section aria-labelledby="line-idea" {...sx(styles.gutter, styles.section)}>
+					<div data-line="skyline" {...sx(styles.skyline)}></div>
+					<div {...sx(styles.indent)}>
+						<p {...sx(styles.eyebrow)}>The idea</p>
+						<h2 id="line-idea" {...sx(styles.heading)}>Then a platform. Then a town.</h2>
+						<p {...sx(styles.body)}>
+							Seasteading means permanent settlements in international waters: built in pieces, joined at sea,
+							free to come apart and regroup.
+						</p>
+					</div>
+				</section>
+
+				{
+					press.length > 0 && (
+						<section id="press" aria-labelledby="line-press" {...sx(styles.gutter, styles.section)}>
+							<p {...sx(styles.eyebrow)}>The voyage so far</p>
+							<h2 id="line-press" {...sx(styles.heading)}>Press</h2>
+							<ol {...sx(styles.press)}>
+								{press.map(({ outlet, headline, quote, url, author, dateLabel }, i) => (
+									<li data-line-stop {...sx(styles.stop, i % 2 === 1 && styles.stopAlt)}>
+										<p {...sx(styles.outlet)}>{outlet}</p>
+										<a href={url} target="_blank" rel="noopener" {...sx(styles.quote)}>
+											{quote ? `“${quote}”` : headline}
+										</a>
+										<p {...sx(styles.byline)}>{[author, dateLabel].filter(Boolean).join(" · ")}</p>
+									</li>
+								))}
+							</ol>
+						</section>
+					)
+				}
+
+				<section id="newsletter" aria-labelledby="line-newsletter" {...sx(styles.last)}>
+					<div data-line="circle" {...sx(styles.circle)}>
+						<div {...sx(styles.inner)}>
+							<p {...sx(styles.eyebrow)}>Newsletter</p>
+							<h2 id="line-newsletter" {...sx(styles.circleHeading)}>Word from the water</h2>
+							<form {...newsletterForm()}>
+								<div {...sx(styles.field)}>
+									<label for="line-email" {...sx(styles.srOnly)}>Email address</label>
+									<input id="line-email" type="email" name="email" autocomplete="email" placeholder="you@example.com" required {...sx(styles.input)} />
+									<button type="submit" aria-label="Subscribe" {...sx(styles.submit)}>
+										<svg viewBox="0 0 16 16" aria-hidden="true" {...sx(styles.arrow)}>
+											<path d="M2 8h11M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.25" />
+										</svg>
+									</button>
+								</div>
+								<p data-newsletter-status aria-live="polite" {...sx(styles.status)}></p>
+							</form>
+						</div>
+					</div>
+				</section>
+			</main>
+
+			<footer>
+				<p {...sx(styles.colophon)}>© {new Date().getFullYear()} {site.title}</p>
+			</footer>
+		</div>
+	</div>
+</LabLayout>
+
+<script>
+	import "@/lib/newsletter.client";
+	import "@/lab/line/draw";
+</script>

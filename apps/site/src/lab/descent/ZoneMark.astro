@@ -1,0 +1,21 @@
+---
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+import { styles } from "./Descent.styles";
+import { formatMetres, zoneAt } from "./zones";
+
+/* A sounding: the depth a section sits at, the zone it is in, and one fact about that water. */
+interface Props {
+	depth: number;
+	fact?: string;
+}
+
+const { depth, fact } = Astro.props;
+---
+
+<div data-reveal {...sx(layout.container, styles.mark, styles.reveal)}>
+	<span {...sx(styles.markDepth)}>{formatMetres(depth)}</span>
+	<span aria-hidden="true" {...sx(styles.markRule)}></span>
+	<span {...sx(styles.markZone)}>{zoneAt(depth).name} zone</span>
+	{fact && <p {...sx(styles.markFact)}>{fact}</p>}
+</div>

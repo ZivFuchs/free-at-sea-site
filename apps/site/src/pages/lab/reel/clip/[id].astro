@@ -1,0 +1,35 @@
+---
+import type { GetStaticPaths } from "astro";
+import { getReel, type ReelClip } from "@/lab/reel/content";
+import Detail from "@/lab/reel/Detail.astro";
+
+export const getStaticPaths = (async () => {
+	const { clips } = await getReel();
+	return clips.map((clip) => ({ params: { id: clip.slug }, props: { clip, clips } }));
+}) satisfies GetStaticPaths;
+
+interface Props {
+	clip: ReelClip;
+	clips: ReelClip[];
+}
+
+const { clip, clips } = Astro.props;
+const at = (by: number) => {
+	const { path, title, thumbnail } = clips[(clip.index + by + clips.length) % clips.length] ?? clip;
+	return { path, title, image: thumbnail };
+};
+---
+
+<Detail
+	kind="Clip"
+	index={clip.index}
+	total={clips.length}
+	title={clip.title}
+	image={clip.thumbnail}
+	anchor={clip.anchor}
+	embed={clip.embed}
+	prev={at(-1)}
+	next={at(1)}
+>
+	{clip.caption && <p>{clip.caption}</p>}
+</Detail>

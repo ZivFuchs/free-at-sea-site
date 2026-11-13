@@ -1,0 +1,113 @@
+---
+import type { Clip } from "@/lib/clips";
+import type { PressItem } from "@/lib/press";
+import type { SiteSettings } from "@/lib/site";
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+import { linkMarker, styles } from "./Waterline.styles";
+
+/* Everything the surface cuts through. Rendered twice with identical layout: once in air, once (`twin`) under water. */
+interface Props {
+	site: SiteSettings;
+	clips: Clip[];
+	press: PressItem[];
+	twin?: boolean;
+}
+
+const { site, clips, press, twin = false } = Astro.props;
+const id = (name: string) => (twin ? undefined : name);
+const pad = (n: number) => String(n).padStart(2, "0");
+
+const LIMITS = [
+	{ figure: "12", unit: "nm", text: "Territorial sea. A coastal state's law applies in full." },
+	{
+		figure: "200",
+		unit: "nm",
+		text: "Exclusive economic zone. The state keeps the fish, the oil and the seabed.",
+	},
+	{ figure: "Beyond", unit: "", text: "The high seas. Open to all, owned by none." },
+];
+---
+
+<section id={id("top")} aria-label="Intro" {...sx(styles.hero)}>
+	<div {...sx(styles.heroCopy)}>
+		<p {...sx(styles.above)}>{site.tagline}</p>
+		<h1 {...sx(styles.title, twin && styles.wobble)}>{site.title}</h1>
+		<p {...sx(styles.below)}>
+			Past the last border, the water belongs to no one.
+			<span {...sx(styles.cue)}>Scroll to go under</span>
+		</p>
+	</div>
+</section>
+
+<section aria-label="The premise" {...sx(layout.container, styles.section)}>
+	<p {...sx(styles.passage)}>
+		A country ends somewhere out on the water.{" "}
+		<span {...sx(styles.passageSoft)}>
+			Keep sailing and you reach a place with no flag at all. This film follows the people trying to build a home there.
+		</span>
+	</p>
+	<dl {...sx(styles.limits)}>
+		{
+			LIMITS.map(({ figure, unit, text }) => (
+				<div {...sx(styles.limit)}>
+					<dt {...sx(styles.limitFigure)}>
+						{figure}
+						{unit && <span {...sx(styles.limitUnit)}>{unit}</span>}
+					</dt>
+					<dd {...sx(styles.limitText)}>{text}</dd>
+				</div>
+			))
+		}
+	</dl>
+</section>
+
+{
+	clips.length > 0 && (
+		<section id={id("clips")} aria-label="Clips" {...sx(layout.container, styles.section)}>
+			<h2 {...sx(styles.heading)}>Clips</h2>
+			<ul {...sx(styles.clips)}>
+				{clips.map(({ _id, title, url, embed, thumbnail }, i) => (
+					<li>
+						<a href={url} data-key={_id} data-embed={embed} data-title={title} {...sx(linkMarker, styles.clip)}>
+							<span {...sx(styles.frame)}>
+								{thumbnail && <img src={thumbnail} alt="" loading="lazy" decoding="async" {...sx(styles.poster)} />}
+								<span {...sx(styles.play)}>
+									<svg viewBox="0 0 12 14" aria-hidden="true" {...sx(styles.triangle)}>
+										<path d="M0 0v14l12-7z" fill="currentColor" />
+									</svg>
+								</span>
+							</span>
+							<span {...sx(styles.caption)}>
+								<span {...sx(styles.index)}>{pad(i + 1)}</span>
+								<span {...sx(styles.clipTitle)}>{title}</span>
+							</span>
+						</a>
+					</li>
+				))}
+			</ul>
+		</section>
+	)
+}
+
+{
+	press.length > 0 && (
+		<section id={id("press")} aria-label="Press" {...sx(layout.container, styles.section)}>
+			<h2 {...sx(styles.heading)}>Press</h2>
+			<ul {...sx(styles.press)}>
+				{press.map(({ id: key, outlet, headline, quote, url, dateLabel }) => (
+					<li>
+						<a href={url} data-key={key} target="_blank" rel="noopener" {...sx(linkMarker, styles.story)}>
+							<span {...sx(styles.outlet)}>{outlet}</span>
+							<span>
+								<span {...sx(styles.headline)}>{headline}</span>
+								{quote && <span {...sx(styles.quote)}>“{quote}”</span>}
+							</span>
+							{dateLabel && <span {...sx(styles.date)}>{dateLabel}</span>}
+						</a>
+					</li>
+				))}
+			</ul>
+		</section>
+	)
+}

@@ -1,0 +1,31 @@
+---
+import { sx } from "@/lib/sx";
+import { material, shade, styles } from "./Builder.styles";
+import type { Shape } from "./iso";
+
+interface Props {
+	shapes: readonly Shape[];
+}
+
+const { shapes } = Astro.props;
+---
+
+{
+	shapes.map((s) =>
+		s.kind === "fill" ? (
+			<path d={s.d} {...sx(material[s.material], shade[s.shade], styles.face)} />
+		) : s.kind === "line" ? (
+			<path d={s.d} stroke-width={s.width} {...sx(material[s.material], styles.line, styles.face)} />
+		) : s.kind === "halo" ? (
+			<path d={s.d} {...sx(styles.halo)} />
+		) : s.kind === "shadow" ? (
+			<path d={s.d} {...sx(styles.cast)} />
+		) : (
+			<g transform={`translate(${s.at[0].toFixed(3)} ${s.at[1].toFixed(3)}) scale(${s.squash} 1)`}>
+				<g {...sx(styles.spin)}>
+					<Astro.self shapes={s.shapes} />
+				</g>
+			</g>
+		),
+	)
+}

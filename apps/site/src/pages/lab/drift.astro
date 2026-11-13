@@ -1,0 +1,184 @@
+---
+import { rootMarker, styles } from "@/lab/drift/Drift.styles";
+import LabLayout from "@/lab/LabLayout.astro";
+import { getClips } from "@/lib/clips";
+import { newsletterForm } from "@/lib/newsletter";
+import { getPress } from "@/lib/press";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+
+/* Scroll is forward travel. The stage below is an ordinary linear document; `drift.client.ts` turns it into a
+ * fixed 3D water column (one stop per plane) unless motion is reduced. */
+const [site, clips, press] = await Promise.all([getSite(), getClips(), getPress()]);
+
+const pad = (n: number) => String(n).padStart(2, "0");
+const of = (i: number, all: readonly unknown[]) => `${pad(i + 1)} / ${pad(all.length)}`;
+const labels = [
+	"Surface",
+	"The film",
+	...clips.map((_, i) => `Clip ${pad(i + 1)}`),
+	...press.map((_, i) => `Press ${pad(i + 1)}`),
+	"Newsletter",
+];
+const nav = [
+	{ label: "Clips", href: "#clips", show: clips.length > 0 },
+	{ label: "Press", href: "#press", show: press.length > 0 },
+	{ label: "Newsletter", href: "#newsletter", show: true },
+].filter(({ show }) => show);
+---
+
+<LabLayout slug="drift">
+	<div data-drift-root {...sx(rootMarker, styles.root)}>
+		<canvas aria-hidden="true" {...sx(styles.canvas)}></canvas>
+
+		<header {...sx(styles.header)}>
+			<a href="#surface" {...sx(styles.wordmark)}>{site.title}</a>
+			<nav aria-label="Main" {...sx(styles.nav)}>
+				{nav.map(({ label, href }) => <a href={href} {...sx(styles.navLink)}>{label}</a>)}
+			</nav>
+		</header>
+
+		<main data-stage {...sx(styles.stage)}>
+			<div data-world {...sx(styles.world)}>
+				<section id="surface" data-plane data-label={labels[0]} aria-label="Intro" {...sx(styles.plane)}>
+					<div {...sx(styles.block, styles.blockWide)}>
+						<h1 {...sx(styles.title)}>{site.title}</h1>
+						<p {...sx(styles.tagline)}>{site.tagline}</p>
+						<p aria-hidden="true" {...sx(styles.hint)}>
+							Scroll to drift
+							<span {...sx(styles.hintLine)}></span>
+						</p>
+					</div>
+				</section>
+
+				<section id="film" data-plane data-label={labels[1]} aria-label="The film" {...sx(styles.plane)}>
+					<div {...sx(styles.block)}>
+						<p {...sx(styles.eyebrow)}>The film</p>
+						<p {...sx(styles.statement)}>
+							Two hundred miles out, the map runs out of owners.
+							<span {...sx(styles.statementSoft)}>This is a film about the people trying to live there.</span>
+						</p>
+					</div>
+				</section>
+
+				{
+					clips.map(({ title, caption, embed, thumbnail }, i) => (
+						<section
+							id={i === 0 ? "clips" : undefined}
+							data-plane
+							data-label={`Clip ${pad(i + 1)}`}
+							aria-label={`Clip: ${title}`}
+							{...sx(styles.plane)}
+						>
+							<div {...sx(styles.clip)}>
+								<div {...sx(styles.screenBox)}>
+									<button type="button" data-close hidden {...sx(styles.close)}>
+										Close
+										<svg viewBox="0 0 10 10" aria-hidden="true" {...sx(styles.cross)}>
+											<path d="M1 1l8 8M9 1l-8 8" fill="none" stroke="currentColor" stroke-width="1.25" />
+										</svg>
+									</button>
+									<div data-frame data-fill={sx(styles.fill).class} {...sx(styles.screen)}>
+										{thumbnail && (
+											<img src={thumbnail} alt="" loading={i === 0 ? "eager" : "lazy"} decoding="async" {...sx(styles.fill, styles.poster)} />
+										)}
+										<button type="button" data-play data-embed={embed} data-title={title} aria-label={`Play ${title}`} {...sx(styles.play)}>
+											<span {...sx(styles.playRing)}>
+												<svg viewBox="0 0 12 14" aria-hidden="true" {...sx(styles.triangle)}>
+													<path d="M0 0v14l12-7z" fill="currentColor" />
+												</svg>
+											</span>
+										</button>
+									</div>
+								</div>
+								<div {...sx(styles.legend)}>
+									<p {...sx(styles.eyebrow)}>Clip {of(i, clips)}</p>
+									<h2 {...sx(styles.clipTitle)}>{title}</h2>
+									{caption && <p {...sx(styles.caption)}>{caption}</p>}
+								</div>
+							</div>
+						</section>
+					))
+				}
+
+				{
+					press.map(({ quote, headline, outlet, author, dateLabel, url }, i) => (
+						<section
+							id={i === 0 ? "press" : undefined}
+							data-plane
+							data-label={`Press ${pad(i + 1)}`}
+							aria-label={`Press: ${outlet}`}
+							{...sx(styles.plane)}
+						>
+							<div {...sx(styles.block)}>
+								<p {...sx(styles.eyebrow)}>Press {of(i, press)}</p>
+								{quote ? (
+									<blockquote {...sx(styles.quote)}>“{quote}”</blockquote>
+								) : (
+									<h2 {...sx(styles.quote)}>{headline}</h2>
+								)}
+								<p {...sx(styles.source)}>{[outlet, author, dateLabel].filter(Boolean).join(" · ")}</p>
+								{url && (
+									<a href={url} target="_blank" rel="noopener" {...sx(styles.read)}>
+										Read the piece
+									</a>
+								)}
+							</div>
+						</section>
+					))
+				}
+
+				<section id="newsletter" data-plane data-label="Newsletter" aria-labelledby="drift-newsletter" {...sx(styles.plane)}>
+					<div {...sx(styles.block)}>
+						<div {...sx(styles.panel)}>
+							<p {...sx(styles.eyebrow)}>Newsletter</p>
+							<h2 id="drift-newsletter" {...sx(styles.panelTitle)}>Word from the water</h2>
+							<p {...sx(styles.panelSub)}>Screenings, release news and dispatches from the people out there.</p>
+							<form {...newsletterForm()} {...sx(styles.form)}>
+								<div {...sx(styles.field)}>
+									<label for="drift-email" {...sx(styles.srOnly)}>Email address</label>
+									<input id="drift-email" type="email" name="email" autocomplete="email" placeholder="you@example.com" required {...sx(styles.input)} />
+									<button type="submit" aria-label="Subscribe" {...sx(styles.submit)}>
+										<svg viewBox="0 0 16 16" aria-hidden="true" {...sx(styles.arrow)}>
+											<path d="M2 8h11M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" />
+										</svg>
+									</button>
+								</div>
+								<p data-newsletter-status aria-live="polite" {...sx(styles.status)}></p>
+							</form>
+						</div>
+						<p {...sx(styles.legal)}>
+							© {new Date().getFullYear()} {site.title}
+							{site.email && (
+								<>
+									{" · "}
+									<a href={`mailto:${site.email}`} {...sx(styles.contact)}>Contact</a>
+								</>
+							)}
+						</p>
+					</div>
+				</section>
+			</div>
+		</main>
+
+		<div data-track aria-hidden="true" {...sx(styles.track)}>
+			{labels.map(() => <div {...sx(styles.stop)} />)}
+		</div>
+
+		<nav aria-label="Stops" {...sx(styles.rail)}>
+			{
+				labels.map((label, i) => (
+					<button type="button" data-go={i} aria-label={`Go to ${label}`} title={label} {...sx(styles.tick)}>
+						<span {...sx(styles.tickLine)} />
+					</button>
+				))
+			}
+		</nav>
+		<p data-readout aria-hidden="true" {...sx(styles.readout)}></p>
+	</div>
+</LabLayout>
+
+<script>
+	import "@/lab/drift/drift.client";
+	import "@/lib/newsletter.client";
+</script>

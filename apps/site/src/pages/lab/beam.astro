@@ -1,0 +1,66 @@
+---
+import Clips from "@/components/clips/Clips.astro";
+import Footer from "@/components/footer/Footer.astro";
+import Header from "@/components/header/Header.astro";
+import Newsletter from "@/components/newsletter/Newsletter.astro";
+import Press from "@/components/press/Press.astro";
+import { steadyMarker, styles } from "@/lab/beam/Beam.styles";
+import { HORIZON } from "@/lab/beam/optics";
+import LabLayout from "@/lab/LabLayout.astro";
+import { getClips } from "@/lib/clips";
+import { getHome } from "@/lib/home";
+import { getPress } from "@/lib/press";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+
+const [site, home, clips, press] = await Promise.all([
+	getSite(),
+	getHome(),
+	getClips(),
+	getPress(),
+]);
+---
+
+<LabLayout slug="beam">
+	<div data-beam {...sx(styles.night)}>
+		<Header overlay />
+		<main>
+			<section aria-label="Intro" data-beam-hero {...sx(styles.hero)} style={{ "--horizon": HORIZON }}>
+				<div aria-hidden="true" {...sx(styles.horizon)}></div>
+				<div data-lit {...sx(styles.copy)}>
+					<h1 data-hero-title data-hero-fade {...sx(styles.title)}>{site.title}</h1>
+					<p data-hero-fade {...sx(styles.tagline)}>{site.tagline}</p>
+				</div>
+				<p data-lit {...sx(styles.hint)}>One light · every eight seconds</p>
+			</section>
+
+			<section aria-labelledby="beam-fixed" {...sx(layout.container, styles.passage)}>
+				<p data-lit {...sx(styles.eyebrow)}>A fixed light</p>
+				<h2 id="beam-fixed" data-lit {...sx(styles.heading)}>Every coast keeps a light. The open sea keeps none.</h2>
+				<p data-lit {...sx(styles.body)}>
+					Past two hundred nautical miles there is no harbour, no flag and no lamp to steer by. Seasteaders want to
+					build the first places to stand out there.
+				</p>
+				<p data-lit {...sx(styles.body)}>This film follows the people trying to light one.</p>
+			</section>
+
+			<Clips clips={clips} />
+			<Press items={press} />
+			<Newsletter home={home} />
+			<p data-lit {...sx(layout.container, styles.landfall)}>Landfall.</p>
+		</main>
+		<Footer />
+		<canvas data-beam-light aria-hidden="true" {...sx(styles.light)}></canvas>
+		<button type="button" data-beam-steady aria-pressed="false" {...sx(steadyMarker, styles.steady)}>
+			<span aria-hidden="true" {...sx(styles.dot)}></span>
+			Steady light
+		</button>
+	</div>
+</LabLayout>
+
+<script>
+	import { start } from "@/lab/beam/beam";
+
+	start();
+</script>

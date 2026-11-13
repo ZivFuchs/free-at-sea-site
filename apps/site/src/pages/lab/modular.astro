@@ -1,0 +1,81 @@
+---
+import Clips from "@/components/clips/Clips.astro";
+import Footer from "@/components/footer/Footer.astro";
+import Header from "@/components/header/Header.astro";
+import Newsletter from "@/components/newsletter/Newsletter.astro";
+import Press from "@/components/press/Press.astro";
+import LabLayout from "@/lab/LabLayout.astro";
+import Builder from "@/lab/modular/Builder.astro";
+import { styles } from "@/lab/modular/Modular.styles";
+import { getClips } from "@/lib/clips";
+import { getHome } from "@/lib/home";
+import { getPress } from "@/lib/press";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+
+const [site, home, clips, press] = await Promise.all([
+	getSite(),
+	getHome(),
+	getClips(),
+	getPress(),
+]);
+
+const steps = [
+	{
+		title: "Start small",
+		body: "A first platform can be one household with its own power and water. Nothing about it needs a city to exist first.",
+	},
+	{
+		title: "Join up",
+		body: "Modules moor edge to edge. Linked, they ride the swell as one raft, steadier than any of them alone.",
+	},
+	{
+		title: "Stay movable",
+		body: "What is joined can be unjoined. A home that floats can leave for another neighbourhood and take itself along.",
+	},
+];
+---
+
+<LabLayout slug="modular">
+	<Header />
+	<main id="main">
+		<section aria-labelledby="modular-title" {...sx(styles.hero)}>
+			<div {...sx(layout.container)}>
+				<div {...sx(styles.head)}>
+					<div>
+						<p {...sx(styles.eyebrow)}>{site.tagline}</p>
+						<h1 id="modular-title" {...sx(styles.title)}>{site.title}</h1>
+					</div>
+					<div>
+						<p {...sx(styles.lede)}>A city at sea is never launched whole. It is added to, one floating module at a time.</p>
+						<p {...sx(styles.intro)}>Seasteads are meant to grow the way harbours do: a few pontoons moored together, then a few more. Try it.</p>
+					</div>
+				</div>
+				<Builder />
+			</div>
+		</section>
+
+		<section aria-labelledby="grow-heading" {...sx(styles.grow)}>
+			<div {...sx(layout.container)}>
+				<h2 id="grow-heading" {...sx(styles.growHeading)}>How a settlement grows</h2>
+				<ol {...sx(styles.steps)}>
+					{
+						steps.map(({ title, body }, i) => (
+							<li {...sx(styles.step)}>
+								<p {...sx(styles.stepNumber)}>{String(i + 1).padStart(2, "0")}</p>
+								<h3 {...sx(styles.stepTitle)}>{title}</h3>
+								<p {...sx(styles.stepBody)}>{body}</p>
+							</li>
+						))
+					}
+				</ol>
+			</div>
+		</section>
+
+		<Clips clips={clips} />
+		<Press items={press} />
+		<Newsletter home={home} />
+	</main>
+	<Footer />
+</LabLayout>

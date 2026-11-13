@@ -1,0 +1,257 @@
+---
+import { Image } from "astro:assets";
+import barge from "@/assets/hero/barge-from-afar.jpg";
+import LabLayout from "@/lab/LabLayout.astro";
+import { formMarker, styles } from "@/lab/shallows/Shallows.styles";
+import { getClips } from "@/lib/clips";
+import { getHome } from "@/lib/home";
+import { NAV } from "@/lib/nav";
+import { newsletterForm } from "@/lib/newsletter";
+import { getPress } from "@/lib/press";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+
+const [site, home, clips, press] = await Promise.all([
+	getSite(),
+	getHome(),
+	getClips(),
+	getPress(),
+]);
+
+const pad = (n: number) => String(n).padStart(2, "0");
+const nav = NAV.map(({ label, href }) => ({ label, href: href.replace("/", "") }));
+/** How each print landed on the sand. */
+const TILTS = [-1.4, 0.9, 0.6, -1.1];
+const tilt = (i: number) => `--tilt: ${TILTS[i % TILTS.length]}deg`;
+const MARKS = [
+	{
+		figure: "200 nm",
+		text: "Where a coastal state's economic zone ends, about 370 kilometres from shore.",
+	},
+	{
+		figure: "⅔",
+		text: "Nearly two-thirds of the ocean lies beyond it: the high seas, owned by no one.",
+	},
+	{
+		figure: "0",
+		text: "Permanent settlements out there so far. The film follows people trying to change that.",
+	},
+];
+---
+
+<LabLayout slug="shallows" tone="light">
+	<div {...sx(styles.page)}>
+		<header {...sx(layout.container, styles.masthead)}>
+			<a href="#top" {...sx(styles.wordmark)}>{site.title}</a>
+			<nav aria-label="Main" {...sx(styles.nav)}>
+				{nav.map(({ label, href }) => <a href={href} {...sx(styles.navLink)}>{label}</a>)}
+			</nav>
+		</header>
+
+		<main id="top">
+			<section aria-label="Intro" {...sx(layout.container, styles.hero)}>
+				<p {...sx(styles.soundings)}>
+					<span>{site.tagline}</span>
+					<span>Depth 0.3 m · Water clear</span>
+				</p>
+				<h1 data-refract {...sx(styles.title)}>{site.title}</h1>
+				<div {...sx(styles.heroGrid)}>
+					<div>
+						<p {...sx(styles.tagline)}>Two hundred nautical miles out, national waters end.</p>
+						<p {...sx(styles.lede)}>{site.description}</p>
+						<p {...sx(styles.hint)}><span aria-hidden="true" {...sx(styles.ring)}></span>Touch the water</p>
+					</div>
+					<figure data-refract data-depth="0.06" {...sx(styles.print)} style="--tilt: 1.2deg">
+						{
+							home.heroPoster ? (
+								<img
+									src={home.heroPoster.src}
+									srcset={home.heroPoster.srcset}
+									sizes="(min-width: 48rem) 55vw, 100vw"
+									alt="The barge alone on open sea, seen from far above"
+									fetchpriority="high"
+									{...sx(styles.photo, styles.heroPhoto)}
+								/>
+							) : (
+								<Image
+									src={barge}
+									alt="The barge alone on open sea, seen from far above"
+									widths={[640, 960, 1440]}
+									sizes="(min-width: 48rem) 55vw, 100vw"
+									loading="eager"
+									{...sx(styles.photo, styles.heroPhoto)}
+								/>
+							)
+						}
+						<figcaption {...sx(styles.plate)}><span>Plate 01</span><span>The barge, open sea</span></figcaption>
+					</figure>
+				</div>
+			</section>
+
+			<section aria-labelledby="film-heading" {...sx(layout.container, styles.section)}>
+				<div {...sx(styles.film)}>
+					<h2 id="film-heading" {...sx(styles.eyebrow)}>The film</h2>
+					<div>
+						<p data-refract {...sx(styles.statement)}>
+							Past the last line on the chart the sea belongs to no nation. <em>{site.title}</em> is about the people
+							trying to build a home there.
+						</p>
+						<p {...sx(styles.about)}>
+							Seasteading is the idea of permanent settlements in international waters: floating platforms, moored
+							barges, small experiments in living beyond any coast. Some have sunk. Some are still afloat.
+						</p>
+					</div>
+				</div>
+				<ul {...sx(styles.marks)}>
+					{MARKS.map(({ figure, text }) => (
+						<li {...sx(styles.mark)}>
+							<span {...sx(styles.figure)}>{figure}</span>
+							<span {...sx(styles.markText)}>{text}</span>
+						</li>
+					))}
+				</ul>
+			</section>
+
+			{
+				clips.length > 0 && (
+					<section id="clips" aria-labelledby="clips-heading" data-clips {...sx(layout.container, styles.section)}>
+						<div {...sx(styles.head)}>
+							<h2 id="clips-heading" {...sx(styles.heading)}>Clips</h2>
+							<p {...sx(styles.count)}>{pad(clips.length)} prints</p>
+						</div>
+						<ul {...sx(styles.prints)}>
+							{clips.map(({ title, url, embed, thumbnail }, i) => (
+								<li {...sx(i % 2 === 1 && styles.low)}>
+									<a
+										href={url}
+										data-embed={embed}
+										data-title={title}
+										data-refract
+										data-depth={i % 2 ? "0.05" : "0.025"}
+										aria-label={`Play ${title}`}
+										{...sx(styles.print, styles.clip)}
+										style={tilt(i)}
+									>
+										{thumbnail && <img src={thumbnail} alt="" loading="lazy" decoding="async" {...sx(styles.photo, styles.clipPhoto)} />}
+										<span {...sx(styles.plate, styles.clipPlate)}>
+											<span {...sx(styles.clipTitle)}><span {...sx(styles.count, styles.clipIndex)}>{pad(i + 1)}</span>{title}</span>
+											<span {...sx(styles.play)}>
+												<svg viewBox="0 0 12 14" aria-hidden="true" {...sx(styles.triangle)}><path d="M0 0v14l12-7z" fill="currentColor" /></svg>
+												Play
+											</span>
+										</span>
+									</a>
+								</li>
+							))}
+						</ul>
+						<dialog aria-label="Clip player" {...sx(styles.dialog)}>
+							<div {...sx(styles.player)}>
+								<div {...sx(styles.print)}>
+									<div data-frame data-fill={sx(styles.fill).class} {...sx(styles.frame)}></div>
+									<div {...sx(styles.plate, styles.clipPlate)}>
+										<span data-title {...sx(styles.clipTitle)}></span>
+										<button type="button" data-close {...sx(styles.close)}>Close</button>
+									</div>
+								</div>
+							</div>
+						</dialog>
+					</section>
+				)
+			}
+
+			{
+				press.length > 0 && (
+					<section id="press" aria-labelledby="press-heading" {...sx(layout.container, styles.section)}>
+						<div {...sx(styles.head)}>
+							<h2 id="press-heading" {...sx(styles.heading)}>Press</h2>
+							<p {...sx(styles.count)}>{pad(press.length)} notices</p>
+						</div>
+						<ul {...sx(styles.quotes)}>
+							{press.map(({ quote, headline, url, outlet, dateLabel, logo }, i) => (
+								<li data-depth={i % 2 ? "0.04" : "0.015"} {...sx(styles.quote, i % 2 === 1 && styles.low)}>
+									<blockquote>
+										<p data-refract {...sx(styles.said)}>{quote ? `“${quote}”` : headline}</p>
+									</blockquote>
+									<a href={url} target="_blank" rel="noopener" {...sx(styles.source)}>
+										<span aria-hidden="true" {...sx(styles.dash)}></span>
+										{logo ? <img src={logo.src} alt={outlet} loading="lazy" {...sx(styles.logo)} /> : <span>{outlet}</span>}
+										{dateLabel && <span>{dateLabel}</span>}
+										<span aria-hidden="true">Read ↗</span>
+									</a>
+								</li>
+							))}
+						</ul>
+					</section>
+				)
+			}
+
+			<section id="newsletter" aria-labelledby="newsletter-heading" {...sx(layout.container)}>
+				<div {...sx(styles.letter)}>
+					<h2 id="newsletter-heading" data-refract {...sx(styles.heading)}>Word from the water</h2>
+					<p {...sx(styles.letterSub)}>Join the newsletter</p>
+					<form {...newsletterForm()} {...sx(formMarker, styles.form)}>
+						<div {...sx(styles.field)}>
+							<label for="shallows-email" {...sx(styles.srOnly)}>Email address</label>
+							<input id="shallows-email" type="email" name="email" autocomplete="email" placeholder="you@example.com" required {...sx(styles.input)} />
+							<button type="submit" {...sx(styles.send)}>Subscribe →</button>
+						</div>
+						<p data-newsletter-status aria-live="polite" {...sx(styles.status)}></p>
+					</form>
+				</div>
+			</section>
+		</main>
+
+		<footer {...sx(layout.container)}>
+			<div {...sx(styles.foot)}>
+				<span>© {new Date().getFullYear()} {site.title}</span>
+				{site.email && <a href={`mailto:${site.email}`} {...sx(styles.footLink)}>Contact</a>}
+			</div>
+		</footer>
+
+		<canvas data-water aria-hidden="true" {...sx(styles.light)}></canvas>
+		<svg aria-hidden="true" {...sx(styles.defs)}><defs data-lenses></defs></svg>
+	</div>
+</LabLayout>
+
+<script>
+	import "@/lib/newsletter.client";
+	import { startWater } from "@/lab/shallows/water";
+
+	const canvas = document.querySelector<HTMLCanvasElement>("canvas[data-water]");
+	const defs = document.querySelector<SVGElement>("[data-lenses]");
+	if (canvas && defs) startWater(canvas, defs);
+
+	for (const root of document.querySelectorAll<HTMLElement>("[data-clips]")) {
+		const dialog = root.querySelector("dialog");
+		const frame = dialog?.querySelector<HTMLElement>("[data-frame]");
+		const name = dialog?.querySelector<HTMLElement>("[data-title]");
+		if (!dialog || !frame) continue;
+		let opener: HTMLElement | undefined;
+
+		for (const print of root.querySelectorAll<HTMLAnchorElement>("a[data-embed]")) {
+			print.addEventListener("click", (event) => {
+				if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+				event.preventDefault();
+				opener = print;
+				const { embed = "", title = "" } = print.dataset;
+				const iframe = document.createElement("iframe");
+				iframe.src = embed;
+				iframe.title = title;
+				iframe.allow = "autoplay; fullscreen; picture-in-picture; encrypted-media";
+				iframe.className = frame.dataset.fill ?? "";
+				frame.replaceChildren(iframe);
+				if (name) name.textContent = title;
+				dialog.showModal();
+			});
+		}
+		dialog.addEventListener("click", (event) => {
+			if (event.target === dialog || (event.target instanceof Element && event.target.closest("[data-close]")))
+				dialog.close();
+		});
+		dialog.addEventListener("close", () => {
+			frame.replaceChildren();
+			opener?.focus();
+		});
+	}
+</script>

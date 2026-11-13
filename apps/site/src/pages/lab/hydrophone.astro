@@ -1,0 +1,120 @@
+---
+import Clips from "@/components/clips/Clips.astro";
+import Footer from "@/components/footer/Footer.astro";
+import Newsletter from "@/components/newsletter/Newsletter.astro";
+import Press from "@/components/press/Press.astro";
+import { marker, styles } from "@/lab/hydrophone/Hydrophone.styles";
+import { ZONES } from "@/lab/hydrophone/signal";
+import LabLayout from "@/lab/LabLayout.astro";
+import { getClips } from "@/lib/clips";
+import { getHome } from "@/lib/home";
+import { getPress } from "@/lib/press";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+
+const [site, home, clips, press] = await Promise.all([
+	getSite(),
+	getHome(),
+	getClips(),
+	getPress(),
+]);
+const nav = [
+	{ label: "Clips", href: "#clips" },
+	{ label: "Press", href: "#press" },
+	{ label: "Newsletter", href: "#newsletter" },
+];
+const metres = (zone: number) => `${ZONES[zone]?.depth.toLocaleString("en")} m`;
+---
+
+<LabLayout slug="hydrophone">
+	<div data-hydrophone aria-hidden="true" {...sx(marker, styles.backdrop)}>
+		<canvas {...sx(styles.canvas)}></canvas>
+	</div>
+
+	<div {...sx(styles.shell)}>
+		<header {...sx(styles.header)}>
+			<div {...sx(layout.container, styles.bar)}>
+				<a href="/lab/hydrophone" {...sx(styles.wordmark)}>{site.title}</a>
+				<nav aria-label="Main" {...sx(styles.nav)}>
+					{nav.map(({ label, href }) => <a href={href} {...sx(styles.link)}>{label}</a>)}
+				</nav>
+				<button type="button" data-hydro-listen aria-pressed="false" {...sx(marker, styles.listen)}>
+					<span aria-hidden="true" {...sx(styles.lamp)}></span>
+					<span {...sx(styles.off)}>Listen</span>
+					<span {...sx(styles.on)}>Listening</span>
+				</button>
+			</div>
+		</header>
+
+		<main id="main" {...sx(styles.main)}>
+			<section aria-label="Intro" data-listen="0" {...sx(styles.hero)}>
+				<div {...sx(styles.plate)}>
+					<div {...sx(layout.container)}>
+						<p {...sx(styles.station)}>Hydrophone 01 · High seas · {metres(0)}</p>
+						<h1 {...sx(styles.title)}>{site.title}</h1>
+						<p {...sx(styles.tagline)}>{site.tagline}</p>
+						<p {...sx(styles.note)}>
+							Behind this page: the sea as an instrument hears it, low notes at the bottom, the last few
+							seconds scrolling by. Synthesised here, not recorded.
+						</p>
+					</div>
+				</div>
+			</section>
+
+			<section aria-labelledby="heard-heading" data-listen="1" {...sx(styles.passage)}>
+				<div {...sx(layout.container)}>
+					<div {...sx(styles.pane)}>
+						<p {...sx(styles.station)}>{metres(1)} · {ZONES[1]?.name}</p>
+						<h2 id="heard-heading" {...sx(styles.heading)}>A place heard, not seen.</h2>
+						<p {...sx(styles.body)}>
+							Light fades within a few hundred metres of the surface. Sound carries: the low calls of the
+							great whales can be heard hundreds of kilometres away.
+						</p>
+						<p {...sx(styles.body)}>
+							Past every border, the open ocean is mostly something you listen to. This film follows the
+							people who want to live on top of it.
+						</p>
+					</div>
+				</div>
+			</section>
+
+			<div {...sx(styles.band)}>
+				<Clips clips={clips} />
+			</div>
+
+			<section aria-label={ZONES[2]?.name} data-listen="2" {...sx(styles.window)}>
+				<p {...sx(layout.container, styles.log)}>
+					<span {...sx(styles.logLine, styles.logDepth)}>{metres(2)} · {ZONES[2]?.name}</span>
+					<span {...sx(styles.logLine)}>A fin whale, far off, one note every ten seconds.</span>
+				</p>
+			</section>
+
+			<div {...sx(styles.band)}>
+				<Press items={press} />
+			</div>
+
+			<section aria-label={ZONES[3]?.name} data-listen="3" {...sx(styles.window)}>
+				<p {...sx(layout.container, styles.log)}>
+					<span {...sx(styles.logLine, styles.logDepth)}>{metres(3)} · {ZONES[3]?.name}</span>
+					<span {...sx(styles.logLine)}>Sperm whales hunting in the dark, by click and echo.</span>
+				</p>
+			</section>
+
+			<Newsletter home={home} />
+		</main>
+		<Footer />
+	</div>
+
+	<p aria-hidden="true" {...sx(styles.readout)}>
+		<span>Listening depth</span>
+		<span data-hydro-depth {...sx(styles.figure)}>{metres(0)}</span>
+		<span data-hydro-zone>{ZONES[0]?.name}</span>
+	</p>
+</LabLayout>
+
+<script>
+	import { hydrophone } from "@/lab/hydrophone/hydrophone.client";
+
+	for (const root of document.querySelectorAll<HTMLElement>("[data-hydrophone]")) hydrophone(root);
+</script>

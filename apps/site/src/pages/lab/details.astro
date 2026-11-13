@@ -1,0 +1,70 @@
+---
+import Clips from "@/components/clips/Clips.astro";
+import ExperimentsPanel from "@/components/experiments/ExperimentsPanel.astro";
+import Footer from "@/components/footer/Footer.astro";
+import Header from "@/components/header/Header.astro";
+import Waterline from "@/components/hero/Waterline.astro";
+import Newsletter from "@/components/newsletter/Newsletter.astro";
+import Press from "@/components/press/Press.astro";
+import Cursor from "@/lab/details/Cursor.astro";
+import Divider from "@/lab/details/Divider.astro";
+import Dividers from "@/lab/details/Dividers.astro";
+import Intro from "@/lab/details/Intro.astro";
+import { styles } from "@/lab/details/Page.styles";
+import PressBuoyant from "@/lab/details/PressBuoyant.astro";
+import PressFlotsam from "@/lab/details/PressFlotsam.astro";
+import Rail from "@/lab/details/Rail.astro";
+import Reveal from "@/lab/details/Reveal.astro";
+import Section from "@/lab/details/Section.astro";
+import Sound from "@/lab/details/Sound.astro";
+import SoundingHeader from "@/lab/details/SoundingHeader.astro";
+import { SECTIONS } from "@/lab/details/sections";
+import TideHeader from "@/lab/details/TideHeader.astro";
+import { detailGroups } from "@/lab/details/variants";
+import LabLayout from "@/lab/LabLayout.astro";
+import { getClips } from "@/lib/clips";
+import { getHome } from "@/lib/home";
+import { getPress } from "@/lib/press";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+
+const [site, home, clips, press] = await Promise.all([
+	getSite(),
+	getHome(),
+	getClips(),
+	getPress(),
+]);
+const [surface, clipsStop, pressStop, newsletterStop] = SECTIONS;
+---
+
+<LabLayout slug="details">
+	<Intro />
+	<div data-experiment="header" data-variant="current" data-active {...sx(styles.contents)}>
+		<Header overlay />
+	</div>
+	<TideHeader />
+	<SoundingHeader />
+
+	<main>
+		<Section {...surface}><Waterline site={site} home={home} /></Section>
+		<Divider />
+		<Section {...clipsStop} reveal dark><Clips clips={clips} /></Section>
+		<Divider ghost />
+		<Section {...pressStop} reveal dark>
+			<div data-experiment="press" data-variant="current" data-active><Press items={press} /></div>
+			<PressBuoyant items={press} />
+			<PressFlotsam items={press} />
+		</Section>
+		<Divider over="below" />
+		<Section {...newsletterStop} reveal dark><Newsletter home={home} /></Section>
+		<Divider />
+	</main>
+	<div data-lamp><Footer /></div>
+
+	<Dividers />
+	<Reveal />
+	<Rail />
+	<Cursor />
+	<Sound />
+	<ExperimentsPanel groups={detailGroups} />
+</LabLayout>

@@ -1,0 +1,145 @@
+---
+import { Image } from "astro:assets";
+import still from "@/assets/hero/barge-from-afar.jpg";
+import Clips from "@/components/clips/Clips.astro";
+import Footer from "@/components/footer/Footer.astro";
+import Newsletter from "@/components/newsletter/Newsletter.astro";
+import Press from "@/components/press/Press.astro";
+import { styles } from "@/lab/barge/Barge.styles";
+import { CALLOUTS, PARTICULARS } from "@/lab/barge/tour";
+import LabLayout from "@/lab/LabLayout.astro";
+import { getClips } from "@/lib/clips";
+import { getHome } from "@/lib/home";
+import { getPress } from "@/lib/press";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+
+const [site, home, clips, press] = await Promise.all([
+	getSite(),
+	getHome(),
+	getClips(),
+	getPress(),
+]);
+
+const NAV = [
+	{ label: "Vessel", href: "#vessel" },
+	{ label: "Clips", href: "#clips" },
+	{ label: "Press", href: "#press" },
+	{ label: "Newsletter", href: "#newsletter" },
+];
+
+const STOPS = [
+	{
+		number: "01",
+		label: "Afloat",
+		heading: "It starts with a deck on open water.",
+		body: "Before there is a settlement there is a hull. This one is a flat steel barge: no engine, no bow to speak of, just a floor that the sea holds up.",
+	},
+	{
+		number: "02",
+		label: "Below deck",
+		heading: "Mostly air, on purpose.",
+		body: "A barge floats on sealed, empty compartments. Flood a few and the deck sits lower and steadier. The living happens in the boxes bolted on top.",
+	},
+	{
+		number: "03",
+		label: "Taken apart",
+		heading: "Everything aboard came by crane.",
+		body: "Shipping containers for bunks and a workshop, tanks for fresh water, a generator, solar on the roofs. Any piece can be lifted off and swapped.",
+	},
+	{
+		number: "04",
+		label: "Alone",
+		heading: "Then tow it past the last border.",
+		body: "Seasteading begins with whatever already floats. Free at Sea is about the people trying to make a home of it.",
+	},
+];
+---
+
+<LabLayout slug="barge">
+	<header {...sx(layout.container, styles.header)}>
+		<a href="/lab/barge" {...sx(styles.wordmark)}>{site.title}</a>
+		<nav aria-label="Sections" {...sx(styles.nav)}>
+			{NAV.map(({ label, href }, i) => <a href={href} {...sx(styles.link, i === 0 && styles.wide)}>{label}</a>)}
+		</nav>
+	</header>
+
+	<main>
+		<div data-barge {...sx(styles.tour)}>
+			<div aria-hidden="true" {...sx(styles.stage)}>
+				<Image src={still} alt="" widths={[768, 1280, 1920]} sizes="100vw" loading="eager" {...sx(styles.still)} />
+				<canvas data-barge-canvas {...sx(styles.canvas)}></canvas>
+				<svg {...sx(styles.overlay)}>
+					{
+						CALLOUTS.map(({ anchor }) => (
+							<Fragment>
+								<line data-leader={anchor} opacity="0" {...sx(styles.leader)} />
+								<circle data-dot={anchor} r="3.5" opacity="0" {...sx(styles.dot)} />
+							</Fragment>
+						))
+					}
+				</svg>
+				{
+					CALLOUTS.map(({ anchor, when, title, note, offset }) => (
+						<p data-callout={anchor} data-when={when} data-dx={offset[0]} data-dy={offset[1]} {...sx(styles.callout)}>
+							<span {...sx(styles.calloutBody)}>
+								<span {...sx(styles.calloutTitle)}>{title}</span>
+								<span {...sx(styles.calloutNote)}>{note}</span>
+							</span>
+						</p>
+					))
+				}
+			</div>
+
+			<div {...sx(styles.sections)}>
+				<section data-stop aria-label="Intro" {...sx(styles.hero)}>
+					<p {...sx(styles.eyebrow)}>The vessel</p>
+					<h1 {...sx(styles.title)}>{site.title}</h1>
+					<p {...sx(styles.tagline)}>{site.tagline}</p>
+					<p {...sx(styles.hint)}>Scroll to go aboard · Drag to turn</p>
+				</section>
+				{
+					STOPS.map(({ number, label, heading, body }, i) => (
+						<section data-stop id={i === 0 ? "vessel" : undefined} {...sx(styles.stop, i === STOPS.length - 1 && styles.last)}>
+							<div {...sx(styles.card, i % 2 === 1 && styles.right)}>
+								<p {...sx(styles.number)}>
+									{number} · {label}
+								</p>
+								<h2 {...sx(styles.heading)}>{heading}</h2>
+								<p {...sx(styles.body)}>{body}</p>
+								{i === 2 && (
+									<>
+										<dl {...sx(styles.particulars)}>
+											{PARTICULARS.map(([term, value]) => (
+												<div>
+													<dt {...sx(styles.term)}>{term}</dt>
+													<dd {...sx(styles.value)}>{value}</dd>
+												</div>
+											))}
+										</dl>
+										<p {...sx(styles.caveat)}>Illustrative model, not a survey of the real vessel.</p>
+									</>
+								)}
+							</div>
+						</section>
+					))
+				}
+			</div>
+		</div>
+
+		<Clips clips={clips} />
+		<Press items={press} />
+		<Newsletter home={home} />
+	</main>
+	<Footer />
+</LabLayout>
+
+<script>
+	const root = document.querySelector<HTMLElement>("[data-barge]");
+	if (root) {
+		const boot = () => import("@/lab/barge/scene").then(({ start }) => start(root));
+		if (document.readyState === "complete") boot();
+		else addEventListener("load", boot, { once: true });
+	}
+</script>

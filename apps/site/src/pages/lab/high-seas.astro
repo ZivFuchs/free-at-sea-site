@@ -1,0 +1,123 @@
+---
+import Clips from "@/components/clips/Clips.astro";
+import Footer from "@/components/footer/Footer.astro";
+import Header from "@/components/header/Header.astro";
+import Newsletter from "@/components/newsletter/Newsletter.astro";
+import Press from "@/components/press/Press.astro";
+import { styles } from "@/lab/high-seas/HighSeas.styles";
+import { SITES } from "@/lab/high-seas/stops";
+import LabLayout from "@/lab/LabLayout.astro";
+import { getClips } from "@/lib/clips";
+import { getHome } from "@/lib/home";
+import { getPress } from "@/lib/press";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+
+const [site, home, clips, press] = await Promise.all([
+	getSite(),
+	getHome(),
+	getClips(),
+	getPress(),
+]);
+const pad = (n: number) => String(n).padStart(2, "0");
+---
+
+<LabLayout slug="high-seas">
+	<div data-high-seas {...sx(styles.root)}>
+		<canvas aria-hidden="true" {...sx(styles.canvas)}></canvas>
+		<div aria-hidden="true" {...sx(styles.markers)}>
+			{
+				SITES.map(({ id, name }) => (
+					<span data-site={id} {...sx(styles.marker)}>
+						<span {...sx(styles.ring)} />
+						<span {...sx(styles.dot)} />
+						<span {...sx(styles.place)}>{name}</span>
+					</span>
+				))
+			}
+		</div>
+
+		<div aria-hidden="true" {...sx(styles.scrim)}></div>
+
+		<Header />
+		<main id="main">
+			<div data-stage {...sx(styles.stage)}>
+				<section aria-label="Intro" data-stop="hero" {...sx(layout.container, styles.stop, styles.hero)}>
+					<div {...sx(styles.copy)}>
+						<p {...sx(styles.eyebrow)}>The high seas</p>
+						<h1 {...sx(styles.title)}>{site.title}</h1>
+						<p {...sx(styles.tagline)}>{site.tagline}</p>
+						<p {...sx(styles.key)}>
+							<span {...sx(styles.swatch, styles.swatchHigh)}></span>
+							Lit: water no nation governs
+						</p>
+					</div>
+				</section>
+
+				<section aria-labelledby="share-heading" data-stop="share" {...sx(layout.container, styles.stop)}>
+					<div {...sx(styles.copy)}>
+						<p aria-hidden="true" {...sx(styles.figure)}>64%</p>
+						<h2 id="share-heading" {...sx(styles.heading)}>
+							Nearly two thirds of the ocean belongs to no one.
+						</h2>
+						<p {...sx(styles.body)}>
+							About 64% of the sea's surface lies beyond every national boundary. That is close to half
+							the planet: the largest place on Earth without a government.
+						</p>
+					</div>
+				</section>
+
+				<section aria-labelledby="limit-heading" data-stop="limit" {...sx(layout.container, styles.stop)}>
+					<div {...sx(styles.copy)}>
+						<p {...sx(styles.eyebrow)}>200 nautical miles</p>
+						<h2 id="limit-heading" {...sx(styles.heading)}>The line is drawn from the shore.</h2>
+						<p {...sx(styles.body)}>
+							A coastal state's economic zone reaches 200 nautical miles out. Past it, no country's law
+							runs by default. Seasteading asks what could be built on the far side.
+						</p>
+						<ul {...sx(styles.legend)}>
+							<li {...sx(styles.legendItem)}><span {...sx(styles.swatch, styles.swatchHigh)}></span>High seas</li>
+							<li {...sx(styles.legendItem)}><span {...sx(styles.swatch, styles.swatchCoastal)}></span>National waters</li>
+							<li {...sx(styles.legendItem)}><span {...sx(styles.swatch, styles.swatchLand)}></span>Land</li>
+						</ul>
+					</div>
+				</section>
+
+				{
+					SITES.map(({ id, name, when, text }, i) => (
+						<section aria-labelledby={`${id}-heading`} data-stop={id} {...sx(layout.container, styles.stop)}>
+							<div {...sx(styles.copy)}>
+								<p {...sx(styles.eyebrow, styles.signal)}>
+									Attempt {pad(i + 1)} · {when}
+								</p>
+								<h2 id={`${id}-heading`} {...sx(styles.heading)}>{name}</h2>
+								<p {...sx(styles.body)}>{text}</p>
+							</div>
+						</section>
+					))
+				}
+			</div>
+
+			<div data-stop="tail" {...sx(styles.tail)}>
+				<Clips clips={clips} />
+				<Press items={press} />
+				<Newsletter home={home} />
+			</div>
+		</main>
+		<Footer />
+
+		<div aria-hidden="true" {...sx(styles.hud)}>
+			<span {...sx(styles.hint)}>Drag to turn</span>
+			<span data-readout>00.0°N 000.0°W</span>
+		</div>
+	</div>
+</LabLayout>
+
+<script>
+	import { mountGlobe } from "@/lab/high-seas/globe";
+
+	const root = document.querySelector<HTMLElement>("[data-high-seas]");
+	const canvas = root?.querySelector("canvas");
+	if (root && canvas) mountGlobe(canvas, root).catch((error) => console.warn("Globe unavailable:", error));
+</script>

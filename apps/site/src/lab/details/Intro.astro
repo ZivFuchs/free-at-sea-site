@@ -1,0 +1,47 @@
+---
+import { sx } from "@/lib/sx";
+import { curtainMarker, styles } from "./Intro.styles";
+
+/* Arrival: dark water, the surface brightening overhead, then the page breaks through. */
+---
+
+<span data-experiment="intro" data-variant="off" data-active hidden></span>
+<div aria-hidden="true" data-experiment="intro" data-variant="surfacing" hidden {...sx(curtainMarker, styles.curtain)}>
+	<div data-water {...sx(styles.water)}>
+		<div {...sx(styles.edge)}></div>
+		<div {...sx(styles.light)}></div>
+	</div>
+</div>
+
+<script>
+	import { reducedMotion } from "@/lab/lib/motion";
+	import { variant } from "./variant";
+
+	const SEEN = "fas-intro-seen";
+	/** Activations later than this after load are a reviewer picking the variant: always replay. */
+	const LOAD_WINDOW_MS = 2500;
+
+	variant("intro", "surfacing", {
+		on: (curtain) => {
+			if (reducedMotion()) return undefined;
+			const arrival = performance.now() < LOAD_WINDOW_MS;
+			if (arrival && sessionStorage.getItem(SEEN)) return undefined;
+			sessionStorage.setItem(SEEN, "1");
+
+			const end = () => {
+				curtain.removeAttribute("data-playing");
+				removeEventListener("keydown", end);
+				curtain.removeEventListener("pointerdown", end);
+			};
+			const done = (e: AnimationEvent) => e.target instanceof HTMLElement && "water" in e.target.dataset && end();
+			curtain.setAttribute("data-playing", "");
+			curtain.addEventListener("animationend", done);
+			curtain.addEventListener("pointerdown", end);
+			addEventListener("keydown", end);
+			return () => {
+				end();
+				curtain.removeEventListener("animationend", done);
+			};
+		},
+	});
+</script>

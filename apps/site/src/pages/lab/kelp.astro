@@ -1,0 +1,96 @@
+---
+import Clips from "@/components/clips/Clips.astro";
+import Footer from "@/components/footer/Footer.astro";
+import Header from "@/components/header/Header.astro";
+import Newsletter from "@/components/newsletter/Newsletter.astro";
+import Press from "@/components/press/Press.astro";
+import { styles } from "@/lab/kelp/Kelp.styles";
+import LabLayout from "@/lab/LabLayout.astro";
+import { getClips } from "@/lib/clips";
+import { getHome } from "@/lib/home";
+import { getPress } from "@/lib/press";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+
+const [site, home, clips, press] = await Promise.all([
+	getSite(),
+	getHome(),
+	getClips(),
+	getPress(),
+]);
+
+const passages = {
+	canopy: {
+		eyebrow: "Canopy",
+		heading: "A forest with no soil",
+		body: "Giant kelp grows from the seabed to the surface, as much as half a metre a day, and spreads a canopy on the swell. It builds a whole habitat out of open water. Seasteaders want to do the same.",
+	},
+	holdfast: {
+		eyebrow: "Holdfast",
+		heading: "Moored, not rooted",
+		body: "A holdfast is not a root. It takes nothing from the rock but grip, and everything above it is free to move with the sea. That is the bargain a settlement on the water makes.",
+	},
+};
+---
+
+<LabLayout slug="kelp">
+	<div {...sx(styles.page)}>
+		<div aria-hidden="true" {...sx(styles.water)}></div>
+		<canvas data-kelp="far" aria-hidden="true" {...sx(styles.far)}></canvas>
+		<canvas data-kelp="mid" aria-hidden="true" {...sx(styles.mid)}></canvas>
+		<canvas data-kelp="near" aria-hidden="true" {...sx(styles.near)}></canvas>
+
+		<div>
+			<Header overlay />
+			{/* The forest top is dark whatever the film's poster is: keep the header's light text. */}
+			<script is:inline>
+				document.querySelector("[data-site-header]")?.style.removeProperty("--top");
+			</script>
+			<main id="main">
+				<section aria-label="Intro" {...sx(styles.hero)}>
+					<div {...sx(styles.copy)}>
+						<h1 data-hero-title data-hero-fade {...sx(styles.title)}>{site.title}</h1>
+						<p data-hero-fade {...sx(styles.tagline)}>{site.tagline}</p>
+					</div>
+					<p aria-hidden="true" {...sx(styles.cue)}>
+						Descend
+						<span {...sx(styles.plumb)}></span>
+					</p>
+				</section>
+
+				<section aria-labelledby="kelp-canopy" {...sx(styles.passage)}>
+					<p {...sx(styles.eyebrow)}>
+						<span {...sx(styles.rule)}></span>{passages.canopy.eyebrow}<span {...sx(styles.rule)}></span>
+					</p>
+					<h2 id="kelp-canopy" {...sx(styles.heading)}>{passages.canopy.heading}</h2>
+					<p {...sx(styles.body)}>{passages.canopy.body}</p>
+				</section>
+
+				<Clips clips={clips} />
+				<Press items={press} />
+
+				<Newsletter home={home} />
+
+				<section aria-labelledby="kelp-holdfast" {...sx(styles.passage, styles.floor)}>
+					<p {...sx(styles.eyebrow)}>
+						<span {...sx(styles.rule)}></span>{passages.holdfast.eyebrow}<span {...sx(styles.rule)}></span>
+					</p>
+					<h2 id="kelp-holdfast" {...sx(styles.heading)}>{passages.holdfast.heading}</h2>
+					<p {...sx(styles.body)}>{passages.holdfast.body}</p>
+				</section>
+			</main>
+			<Footer />
+		</div>
+	</div>
+</LabLayout>
+
+<script>
+	import { growForest } from "@/lab/kelp/forest";
+
+	const pick = (plane: string) => document.querySelector<HTMLCanvasElement>(`canvas[data-kelp="${plane}"]`);
+	const far = pick("far");
+	const mid = pick("mid");
+	const near = pick("near");
+	const footer = document.querySelector("footer");
+	if (far && mid && near) growForest({ far, mid, near }, () => footer?.offsetHeight ?? 0);
+</script>

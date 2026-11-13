@@ -1,0 +1,76 @@
+---
+import { Image } from "astro:assets";
+import still from "@/assets/hero/barge-from-afar.jpg";
+import type { Home } from "@/lib/home";
+import type { SiteSettings } from "@/lib/site";
+import { sx } from "@/lib/sx";
+import Letters from "./Letters.astro";
+import type { CardId } from "./sequence";
+import { styles } from "./Titles.styles";
+
+/* The hero, with the main-title sequence laid over it. Credits are placeholders (roles, no names) and decorative. */
+interface Props {
+	site: SiteSettings;
+	home: Home;
+}
+
+const { site, home } = Astro.props;
+const HORIZON = 0.178;
+const position = `50% ${HORIZON * 100}%`;
+const alt = "The barge alone on open sea, seen from far above";
+
+const credits: { id: Exclude<CardId, "line" | "tagline">; label: string; name: string }[] = [
+	{ id: "presents", label: "Presented by", name: "Production Company" },
+	{ id: "director", label: "Directed by", name: "Director" },
+];
+const place = { presents: styles.lowerLeft, director: styles.lowerRight };
+const line = "Beyond the reach of any shore";
+---
+
+<section aria-label="Intro" data-titles-hero {...sx(styles.hero)} style={{ "--horizon": HORIZON }}>
+	<div {...sx(styles.media)}>
+		{
+			home.heroPoster ? (
+				<img src={home.heroPoster.src} srcset={home.heroPoster.srcset} sizes="100vw" alt={alt} loading="eager" fetchpriority="high" {...sx(styles.fill)} style={{ objectPosition: position }} />
+			) : (
+				<Image src={still} alt={alt} widths={[768, 1280, 1920, 2880]} sizes="100vw" loading="eager" fetchpriority="high" {...sx(styles.fill)} style={{ objectPosition: position }} />
+			)
+		}
+		{home.heroVideo && <video data-src={home.heroVideo} muted loop playsinline aria-hidden="true" {...sx(styles.fill, styles.video)} style={{ objectPosition: position }} />}
+	</div>
+	<div {...sx(styles.veil)}></div>
+
+	<div aria-hidden="true" {...sx(styles.cards)}>
+		{
+			credits.map(({ id, label, name }) => (
+				<p data-card={id} {...sx(styles.card, place[id])}>
+					<span {...sx(styles.label)}>{label}</span>
+					<span {...sx(styles.name)}><Letters text={name} /></span>
+				</p>
+			))
+		}
+		<p data-card="tagline" {...sx(styles.card, styles.midRight)} style={{ "--amp": "0.3em" }}>
+			<span {...sx(styles.name, styles.serif)}><Letters text={site.tagline} /></span>
+		</p>
+		<p data-card="line" {...sx(styles.card, styles.centre)}>
+			<span {...sx(styles.sub)}>
+				<span {...sx(styles.above)}><span {...sx(styles.sinkAbove)}>{line}</span></span>
+				<span {...sx(styles.surface)}></span>
+				<span {...sx(styles.below)}><span {...sx(styles.sinkBelow)}>{line}</span></span>
+			</span>
+		</p>
+	</div>
+
+	<div aria-hidden="true" {...sx(styles.horizon)}></div>
+	<div {...sx(styles.copy)}>
+		<h1 aria-label={site.title} {...sx(styles.title)}><Letters text={site.title} as="title" /></h1>
+		<p {...sx(styles.tagline)}>{site.tagline}</p>
+	</div>
+
+	<div aria-hidden="true" {...sx(styles.letterbox, styles.barTop)}></div>
+	<div aria-hidden="true" {...sx(styles.letterbox, styles.barBottom)}></div>
+	<p aria-hidden="true" {...sx(styles.cue)}>Scroll</p>
+	<button type="button" data-titles-skip hidden {...sx(styles.skip)}>Skip titles</button>
+	<button type="button" data-titles-replay hidden {...sx(styles.replay)}>Replay titles</button>
+	<div aria-hidden="true" {...sx(styles.curtain)}></div>
+</section>

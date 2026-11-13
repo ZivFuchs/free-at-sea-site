@@ -1,0 +1,43 @@
+---
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+import { styles } from "./Bathymetry.styles";
+import { KM_PER_DEGREE, ORIGIN } from "./terrain";
+
+/** One survey log entry: a numbered stamp, a heading, copy, and one figure. */
+interface Props {
+	/** Along-track km the flight reaches when this entry is centred. */
+	station: number;
+	number: string;
+	/** Seafloor feature under the ship here. */
+	feature: string;
+	heading: string;
+	figure: string;
+	caption: string;
+}
+
+const { station, number, feature, heading, figure, caption } = Astro.props;
+const id = `log-${number}`;
+const latitude = ORIGIN.lat + station / KM_PER_DEGREE;
+const minutes = String(Math.round((latitude % 1) * 60)).padStart(2, "0");
+const stamp = `${Math.floor(latitude)}°${minutes}′S · ${feature}`;
+---
+
+<section aria-labelledby={id} data-station={station} {...sx(styles.entry)}>
+	<div aria-hidden="true" {...sx(styles.entryScrim)}></div>
+	<div {...sx(layout.container)}>
+		<div {...sx(styles.column)}>
+			<p {...sx(styles.meta)}>
+				<span>Log {number}</span>
+				<span aria-hidden="true" {...sx(styles.rule)}></span>
+				<span {...sx(styles.stamp)}>{stamp}</span>
+			</p>
+			<h2 id={id} {...sx(styles.heading)}>{heading}</h2>
+			<p {...sx(styles.body)}><slot /></p>
+			<p {...sx(styles.figure)}>
+				<span {...sx(styles.number)}>{figure}</span>
+				<span {...sx(styles.caption)}>{caption}</span>
+			</p>
+		</div>
+	</div>
+</section>

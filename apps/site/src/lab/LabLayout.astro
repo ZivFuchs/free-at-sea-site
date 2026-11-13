@@ -1,0 +1,46 @@
+---
+import { Font } from "astro:assets";
+import { sx } from "@/lib/sx";
+import "@/styles/global.css";
+import { styles } from "./LabLayout.styles";
+import { labEntry } from "./registry";
+
+/* Bare shell for a lab experiment: fonts, theme, StyleX, no header or footer. Experiments bring their own
+ * (or import the site's). Always noindexed. */
+interface Props {
+	/** Registry slug: sets the title. Omit on the index. */
+	slug?: string;
+	/** Page ground: the site's open-water blue, or paper for daylight concepts. */
+	tone?: "dark" | "light";
+}
+
+const { slug, tone = "dark" } = Astro.props;
+const title = slug ? `${labEntry(slug).title} · Lab` : "Lab · Free at Sea";
+---
+
+<!doctype html>
+<html lang="en" data-astryx-theme="free-at-sea" data-theme="light">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<title>{title}</title>
+		<meta name="robots" content="noindex" />
+		<Font cssVariable="--font-anton" preload />
+		<Font cssVariable="--font-playfair" preload />
+		{
+			import.meta.env.DEV && (
+				<>
+					<style is:inline>@layer reset, astryx-base, astryx-theme, product;</style>
+					<link rel="stylesheet" href="/virtual:stylex.css" />
+					<script is:inline type="module" src="/@id/virtual:stylex:runtime"></script>
+				</>
+			)
+		}
+		<slot name="head" />
+	</head>
+	<body {...sx(styles.body, tone === "light" && styles.light)}>
+		<slot />
+		{slug && <a href="/lab" {...sx(styles.chip)}>← Lab</a>}
+	</body>
+</html>

@@ -1,0 +1,70 @@
+---
+import Clips from "@/components/clips/Clips.astro";
+import Footer from "@/components/footer/Footer.astro";
+import Header from "@/components/header/Header.astro";
+import Newsletter from "@/components/newsletter/Newsletter.astro";
+import Press from "@/components/press/Press.astro";
+import { styles } from "@/lab/below/below.styles";
+import Water from "@/lab/below/Water.astro";
+import LabLayout from "@/lab/LabLayout.astro";
+import { getClips } from "@/lib/clips";
+import { getHome } from "@/lib/home";
+import { getPress } from "@/lib/press";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+
+const [site, home, clips, press] = await Promise.all([
+	getSite(),
+	getHome(),
+	getClips(),
+	getPress(),
+]);
+---
+
+<LabLayout slug="below">
+	<Water />
+	<Header overlay />
+	<div {...sx(styles.page)}>
+	<main id="main">
+		<section aria-label="Intro" {...sx(styles.hero)}>
+			<div {...sx(styles.copy)}>
+				<h1 data-hero-title data-hero-fade {...sx(styles.title)}>{site.title}</h1>
+				<p data-hero-fade {...sx(styles.tagline)}>{site.tagline}</p>
+			</div>
+			<p {...sx(styles.sounding)}>
+				3,700 m of water under this page
+				<span aria-hidden="true" {...sx(styles.plumb)}></span>
+			</p>
+		</section>
+
+		<section aria-labelledby="below-heading" data-cue="whale" {...sx(layout.container, styles.section)}>
+			<div {...sx(styles.raft)}>
+				<p {...sx(styles.eyebrow)}>Under the keel</p>
+				<h2 id="below-heading" {...sx(styles.heading)}>Everything out here floats on three kilometres of water.</h2>
+				<p {...sx(styles.body)}>
+					A seastead has no ground under it. Beyond the continental shelf the seabed falls away to an average
+					of some 3,700 metres, and a home on the high seas rides above all of it. Most days the water is
+					empty. Some days it is not.
+				</p>
+			</div>
+		</section>
+
+		<Clips clips={clips} />
+		<Press items={press} />
+
+		<section aria-label="Open water" data-cue="surface" {...sx(layout.container, styles.open)}>
+			<div {...sx(styles.note)}>
+				<p {...sx(styles.noteLabel)}>Neighbours</p>
+				<p>
+					Humpback whales cross whole ocean basins every year, through the waters of a dozen nations and of
+					none.
+				</p>
+			</div>
+		</section>
+
+		<Newsletter home={home} />
+	</main>
+	<Footer />
+	</div>
+</LabLayout>

@@ -1,0 +1,116 @@
+---
+import { getImage, Image } from "astro:assets";
+import still from "@/assets/hero/barge-from-afar.jpg";
+import type { SiteSettings } from "@/lib/site";
+import { sx } from "@/lib/sx";
+import { hero } from "./Hero.styles";
+import { HORIZON } from "./shared";
+
+/* A living photograph: the still, displaced by a rough depth map so it leans with the pointer or the phone,
+ * its water moving and glinting while the barge holds still. */
+interface Props {
+	site: SiteSettings;
+}
+
+const { site } = Astro.props;
+const texture = await getImage({ src: still, width: 1920, format: "webp" });
+---
+
+<section aria-label="Intro" data-depth {...sx(hero.section)} style={{ "--horizon": HORIZON }}>
+	<Image
+		src={still}
+		alt="The barge alone on open sea, seen from far above"
+		widths={[768, 1280, 1920, 2880]}
+		sizes="100vw"
+		loading="lazy"
+		{...sx(hero.fill, hero.cover)}
+		style={{ objectPosition: `50% ${HORIZON * 100}%` }}
+	/>
+	<canvas
+		aria-hidden="true"
+		data-texture={texture.src}
+		data-aspect={still.width / still.height}
+		data-horizon={HORIZON}
+		{...sx(hero.fill, hero.canvas)}></canvas>
+	<div {...sx(hero.copy)}>
+		<h1 data-anchor data-hero-fade {...sx(hero.title)}>{site.title}</h1>
+		<p data-hero-fade {...sx(hero.tagline)}>{site.tagline}</p>
+	</div>
+</section>
+
+<script>
+	import { runShader } from "@/lab/lib/gl";
+	import { clamp, damp, reducedMotion } from "@/lab/lib/motion";
+	import body from "./depth.frag?raw";
+	import { fragment } from "./glsl";
+	import { onVariant } from "./lifecycle";
+
+	/** Seconds without input before the view starts to sway on its own. */
+	const IDLE = 4;
+
+	const loadImage = (src: string) =>
+		new Promise<HTMLImageElement>((resolve, reject) => {
+			const img = new Image();
+			img.onload = () => resolve(img);
+			img.onerror = reject;
+			img.src = src;
+		});
+
+	let started = false;
+	onVariant("depth", (root) => {
+		const canvas = root.querySelector("canvas");
+		// The loop pauses itself while the variant is hidden, so one start is enough.
+		if (!canvas || started) return;
+		started = true;
+		const { texture = "", aspect = "1.78", horizon = "0.18" } = canvas.dataset;
+
+		const target = { x: 0, y: 0 };
+		const lean = { x: 0, y: 0 };
+		let touched = -Infinity;
+		let last = 0;
+		const still = reducedMotion();
+
+		const shader = runShader(canvas, {
+			fragment: fragment(body),
+			uniforms: (time) => {
+				const dt = Math.min(time - last, 0.1);
+				last = time;
+				const idle = time - touched > IDLE;
+				const tx = idle ? Math.sin(time * 0.23) * 0.55 : target.x;
+				const ty = idle ? Math.cos(time * 0.17) * 0.4 : target.y;
+				lean.x = damp(lean.x, still ? 0 : tx, idle ? 0.8 : 4, dt);
+				lean.y = damp(lean.y, still ? 0 : ty, idle ? 0.8 : 4, dt);
+				return {
+					u_imgAspect: Number(aspect),
+					u_horizon: Number(horizon),
+					u_lean: [lean.x, lean.y],
+				};
+			},
+		});
+		if (!shader) return;
+		loadImage(texture).then((img) => {
+			shader.texture("u_img", img);
+			canvas.setAttribute("data-ready", "");
+		});
+		if (still) return;
+
+		const now = () => performance.now() / 1000;
+		addEventListener(
+			"pointermove",
+			(e) => {
+				if (e.pointerType === "touch") return;
+				target.x = (e.clientX / innerWidth) * 2 - 1;
+				target.y = (e.clientY / innerHeight) * 2 - 1;
+				touched = now();
+			},
+			{ passive: true },
+		);
+		addEventListener("deviceorientation", (e) => {
+			if (e.gamma === null || e.beta === null) return;
+			target.x = clamp(e.gamma / 25, -1, 1);
+			target.y = clamp((e.beta - 50) / 25, -1, 1);
+			touched = now();
+		});
+
+	});
+</script>

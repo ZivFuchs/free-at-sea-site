@@ -1,0 +1,42 @@
+---
+import Clips from "@/components/clips/Clips.astro";
+import Footer from "@/components/footer/Footer.astro";
+import Newsletter from "@/components/newsletter/Newsletter.astro";
+import Press from "@/components/press/Press.astro";
+import LabLayout from "@/lab/LabLayout.astro";
+import Scale from "@/lab/scale/Scale.astro";
+import { styles } from "@/lab/scale/Scale.styles";
+import { getClips } from "@/lib/clips";
+import { getHome } from "@/lib/home";
+import { getPress } from "@/lib/press";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+
+const [site, home, clips, press] = await Promise.all([
+	getSite(),
+	getHome(),
+	getClips(),
+	getPress(),
+]);
+const links = [
+	{ label: "Clips", href: "#clips" },
+	{ label: "Press", href: "#press" },
+	{ label: "Newsletter", href: "#newsletter" },
+];
+---
+
+<LabLayout slug="scale">
+	<header {...sx(styles.header)}>
+		<a href="#main" {...sx(styles.wordmark)}>{site.title}</a>
+		<nav aria-label="Main" {...sx(styles.nav)}>
+			{links.map(({ label, href }) => <a href={href} {...sx(styles.navLink)}>{label}</a>)}
+		</nav>
+	</header>
+	<main id="main">
+		<Scale site={site} />
+		<Clips clips={clips} />
+		<Press items={press} />
+		<Newsletter home={home} />
+	</main>
+	<Footer />
+</LabLayout>

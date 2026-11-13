@@ -1,0 +1,61 @@
+---
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+import { pad, type ReelClip } from "./content";
+import { styles, tileMarker } from "./Filmstrip.styles";
+
+/* Clips as a strip of film. Each poster and title is the shared element of its clip page's transition. */
+interface Props {
+	clips: ReelClip[];
+}
+
+const { clips } = Astro.props;
+const last = Math.max(clips.length - 1, 1);
+---
+
+<section id="clips" aria-labelledby="clips-heading" {...sx(styles.section)} style={{ "--count": clips.length }}>
+	<svg viewBox="0 0 1200 40" preserveAspectRatio="none" aria-hidden="true" {...sx(styles.swell)}>
+		<path d="M0 22C150 2 300 2 450 20S750 38 900 20s225-14 300 0V40H0Z" />
+	</svg>
+	{clips.map(({ anchor, index }) => (
+		<span id={anchor} {...sx(styles.anchor)} style={{ top: `calc(${index / last} * max(0px, 100% - 100svh))` }} />
+	))}
+	<div {...sx(styles.stage)}>
+		<div {...sx(layout.container, styles.head)}>
+			<h2 id="clips-heading" {...sx(styles.heading)}>Clips</h2>
+			<p {...sx(styles.label)}>Reel 01</p>
+		</div>
+		<div {...sx(styles.viewport)}>
+			<ol {...sx(styles.track)}>
+				{clips.map(({ title, thumbnail, path, index }) => (
+					<li {...sx(styles.tile)}>
+						<a href={path} {...sx(tileMarker, styles.link)}>
+							<div {...sx(styles.frame)}>
+								{thumbnail && (
+									<img
+										src={thumbnail}
+										alt=""
+										loading={index < 2 ? "eager" : "lazy"}
+										decoding="async"
+										data-vt-for={path}
+										data-vt="reel-poster"
+										{...sx(styles.poster)}
+									/>
+								)}
+							</div>
+							<div {...sx(styles.legend)}>
+								<span {...sx(styles.label)}>{pad(index + 1)}</span>
+								<span data-vt-for={path} data-vt="reel-title" {...sx(styles.title)}>{title}</span>
+							</div>
+						</a>
+					</li>
+				))}
+			</ol>
+		</div>
+		<div aria-hidden="true" {...sx(layout.container, styles.foot)}>
+			<span {...sx(styles.label)}>01</span>
+			<span {...sx(styles.rule)}><span {...sx(styles.ruleFill)}></span></span>
+			<span {...sx(styles.label)}>{pad(clips.length)}</span>
+		</div>
+	</div>
+</section>

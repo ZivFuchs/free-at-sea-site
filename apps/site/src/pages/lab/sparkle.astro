@@ -1,0 +1,75 @@
+---
+import Clips from "@/components/clips/Clips.astro";
+import Footer from "@/components/footer/Footer.astro";
+import Header from "@/components/header/Header.astro";
+import Newsletter from "@/components/newsletter/Newsletter.astro";
+import Press from "@/components/press/Press.astro";
+import LabLayout from "@/lab/LabLayout.astro";
+import { rootMarker, styles } from "@/lab/sparkle/Sparkle.styles";
+import { getClips } from "@/lib/clips";
+import { getHome } from "@/lib/home";
+import { getPress } from "@/lib/press";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+
+const [site, home, clips, press] = await Promise.all([
+	getSite(),
+	getHome(),
+	getClips(),
+	getPress(),
+]);
+/** Tiles and cards that shed light along their edges as they come into view. */
+const SHIMMER = "#clips li, #press li";
+---
+
+<LabLayout slug="sparkle">
+	<div data-sparkle data-shimmer={SHIMMER} {...sx(rootMarker, styles.root)}>
+		<canvas aria-hidden="true" {...sx(styles.canvas)}></canvas>
+		<Header overlay />
+		<main id="main" {...sx(styles.main)}>
+			<section aria-label="Intro" {...sx(styles.hero)}>
+				<h1 data-hero-title data-hero-fade data-sparkle-title {...sx(styles.title)}>
+					<span {...sx(styles.ink)}>{site.title}</span>
+				</h1>
+				<p data-hero-fade {...sx(styles.tagline, styles.late)}>{site.tagline}</p>
+				<p aria-hidden="true" {...sx(styles.hint, styles.late)}>
+					<span {...sx(styles.hoverOnly)}>Move through the water</span>
+					<span {...sx(styles.touchOnly)}>Touch the water</span>
+				</p>
+			</section>
+
+			<section aria-labelledby="night-heading" {...sx(layout.container, styles.passage)}>
+				<div {...sx(styles.columns)}>
+					<div>
+						<p {...sx(styles.eyebrow)}>Night watch</p>
+						<h2 id="night-heading" {...sx(styles.lede)}>Far from any coast, the sea makes its own light.</h2>
+					</div>
+					<div {...sx(styles.body)}>
+						<p>
+							Disturb warm water on a dark night and it answers: plankton flash where a hull, a hand or a
+							breaking wave passes, then go dark again.
+						</p>
+						<p {...sx(styles.gap)}>
+							Free at Sea follows the people trying to live out here for good, on settlements built in
+							international waters.
+						</p>
+					</div>
+				</div>
+			</section>
+
+			<Clips clips={clips} />
+			<Press items={press} />
+			<Newsletter home={home} />
+		</main>
+		<Footer />
+	</div>
+</LabLayout>
+
+<script>
+	import { sparkle } from "@/lab/sparkle/sparkle";
+
+	// The site header picks dark text for the film's pale sky; this hero is night.
+	document.querySelector<HTMLElement>("[data-site-header]")?.style.removeProperty("--top");
+	for (const root of document.querySelectorAll<HTMLElement>("[data-sparkle]")) sparkle(root);
+</script>

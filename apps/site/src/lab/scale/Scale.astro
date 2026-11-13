@@ -1,0 +1,68 @@
+---
+import type { SiteSettings } from "@/lib/site";
+import { sx } from "@/lib/sx";
+import { liveMarker, styles } from "./Scale.styles";
+import { STAGES } from "./stages";
+
+/* One continuous zoom out, scrubbed by scroll: a person, a room, a vessel, a settlement, the sea, the line, an ocean, a planet.
+ * Without script or under reduced motion it reads as a list of captions (with a still plate each under reduced motion). */
+interface Props {
+	site: SiteSettings;
+}
+
+const { site } = Astro.props;
+const pad = (n: number) => String(n).padStart(2, "0");
+---
+
+<section aria-label="Scale" data-scale {...sx(liveMarker, styles.root)}>
+	<div data-track {...sx(styles.track)}>
+		<div data-stage-frame {...sx(styles.stage)}>
+			<canvas aria-hidden="true" data-scene {...sx(styles.canvas)}></canvas>
+			<div aria-hidden="true" {...sx(styles.scrim)}></div>
+
+			<ol {...sx(styles.copy)}>
+				{
+					STAGES.map(({ id, name, measure, caption }, i) => (
+						<li data-slide={id} {...sx(styles.slide)} style={i === 0 ? "--show: 1" : undefined}>
+							{i === 0 && (
+								<>
+									<h1 {...sx(styles.title)}>{site.title}</h1>
+									<p {...sx(styles.tagline)}>{site.tagline}</p>
+								</>
+							)}
+							<p {...sx(styles.kicker)}>
+								<span {...sx(styles.number)}>{pad(i + 1)}</span>
+								<span {...sx(styles.measure)}>{measure}</span>
+							</p>
+							<h2 {...sx(styles.name)}>{name}</h2>
+							<p {...sx(styles.caption)}>{caption}</p>
+							<canvas aria-hidden="true" data-plate={i} {...sx(styles.plate)} />
+						</li>
+					))
+				}
+			</ol>
+
+			<nav aria-label="Scale stops" {...sx(styles.rail)}>
+				{
+					STAGES.map(({ name, measure }, i) => (
+						<button type="button" data-stop={i} aria-label={`${name}, ${measure}`} title={`${name} · ${measure}`} {...sx(styles.stop)} />
+					))
+				}
+			</nav>
+
+			<p aria-hidden="true" {...sx(styles.cue)}>Scroll to pull back</p>
+
+			<div aria-hidden="true" {...sx(styles.readout)}>
+				<span data-bar-label>1 m</span>
+				<span data-bar {...sx(styles.bar)}></span>
+				<span data-zoom {...sx(styles.zoom)}>× 1</span>
+			</div>
+		</div>
+	</div>
+</section>
+
+<script>
+	import { start } from "./scale.client";
+
+	for (const root of document.querySelectorAll<HTMLElement>("[data-scale]")) start(root);
+</script>

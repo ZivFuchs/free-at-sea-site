@@ -1,0 +1,178 @@
+/* View-transition at-rules and pseudo-elements, which StyleX cannot express. Types (dive, surface, next, prev)
+ * are set in ReelShell's pagereveal script. */
+@view-transition {
+	navigation: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	@view-transition {
+		navigation: none;
+	}
+}
+
+::view-transition-group(reel-header) {
+	z-index: 3;
+}
+
+::view-transition-group(reel-poster),
+::view-transition-group(reel-title) {
+	z-index: 2;
+	animation-duration: 850ms;
+	animation-timing-function: cubic-bezier(0.6, 0, 0.15, 1);
+}
+
+::view-transition-old(reel-poster),
+::view-transition-new(reel-poster) {
+	height: 100%;
+	object-fit: cover;
+}
+
+/* Root: a tide with a wave for an edge. Diving in, the new page rises over the old; surfacing, the old drains away. */
+html:active-view-transition-type(dive)::view-transition-old(root),
+html:active-view-transition-type(dive)::view-transition-new(root),
+html:active-view-transition-type(surface)::view-transition-old(root),
+html:active-view-transition-type(surface)::view-transition-new(root) {
+	mix-blend-mode: normal;
+	animation-duration: 950ms;
+	animation-timing-function: cubic-bezier(0.65, 0, 0.2, 1);
+	animation-fill-mode: both;
+}
+
+html:active-view-transition-type(dive)::view-transition-new(root),
+html:active-view-transition-type(surface)::view-transition-old(root) {
+	animation-name: reel-tide;
+	mask-image:
+		url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 60' preserveAspectRatio='none'%3E%3Cpath d='M0 30Q75 4 150 30T300 30T450 30T600 30V60H0Z'/%3E%3C/svg%3E"),
+		linear-gradient(#000, #000);
+	mask-repeat: repeat-x, no-repeat;
+	mask-size:
+		600px 60px,
+		100% 100%;
+}
+
+html:active-view-transition-type(dive)::view-transition-old(root),
+html:active-view-transition-type(surface)::view-transition-new(root) {
+	animation-name: reel-submerge;
+}
+
+html:active-view-transition-type(surface)::view-transition-old(root) {
+	z-index: 1;
+	animation-direction: reverse;
+}
+
+html:active-view-transition-type(surface)::view-transition-new(root) {
+	animation-direction: reverse;
+}
+
+/* The waterline itself: an empty fixed element on every page, whose group is restyled as a line of light
+ * that rides the tide's edge. */
+::view-transition-group(reel-foam) {
+	display: none;
+}
+
+html:active-view-transition-type(dive, surface)::view-transition-group(reel-foam) {
+	display: block;
+	z-index: 2;
+	top: 0;
+	left: 0;
+	width: calc(100vw + 600px);
+	height: 60px;
+	background:
+		url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 60' preserveAspectRatio='none'%3E%3Cpath d='M0 30Q75 4 150 30T300 30T450 30T600 30' fill='none' stroke='%239fd8e8' stroke-opacity='.55' stroke-width='1.5' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E")
+		0 0 / 600px 60px repeat-x;
+	animation: reel-foam 950ms cubic-bezier(0.65, 0, 0.2, 1) both;
+}
+
+html:active-view-transition-type(surface)::view-transition-group(reel-foam) {
+	animation-direction: reverse;
+}
+
+::view-transition-image-pair(reel-foam) {
+	display: none;
+}
+
+@keyframes reel-foam {
+	from {
+		transform: translate(0, 100lvh);
+	}
+	to {
+		transform: translate(-600px, -60px);
+	}
+}
+
+@keyframes reel-tide {
+	from {
+		mask-position:
+			0 100lvh,
+			0 calc(100lvh + 59px);
+	}
+	to {
+		mask-position:
+			-600px -60px,
+			0 -1px;
+	}
+}
+
+@keyframes reel-submerge {
+	to {
+		filter: brightness(0.5) saturate(0.7);
+		transform: scale(1.04);
+	}
+}
+
+/* Clip to clip: the frame holds still and the picture advances through it, like film through a gate. */
+html:active-view-transition-type(next, prev)::view-transition-group(reel-poster) {
+	overflow: clip;
+}
+
+html:active-view-transition-type(next, prev)::view-transition-old(reel-poster),
+html:active-view-transition-type(next, prev)::view-transition-new(reel-poster) {
+	mix-blend-mode: normal;
+	animation-duration: 700ms;
+	animation-timing-function: cubic-bezier(0.65, 0, 0.2, 1);
+	animation-fill-mode: both;
+}
+
+html:active-view-transition-type(next)::view-transition-old(reel-poster) {
+	animation-name: reel-out-left;
+}
+html:active-view-transition-type(next)::view-transition-new(reel-poster) {
+	animation-name: reel-in-right;
+}
+html:active-view-transition-type(prev)::view-transition-old(reel-poster) {
+	animation-name: reel-in-right;
+	animation-direction: reverse;
+}
+html:active-view-transition-type(prev)::view-transition-new(reel-poster) {
+	animation-name: reel-out-left;
+	animation-direction: reverse;
+}
+
+@keyframes reel-out-left {
+	to {
+		transform: translateX(-102%);
+	}
+}
+@keyframes reel-in-right {
+	from {
+		transform: translateX(102%);
+	}
+}
+
+/* Titles of different lengths: one leaves before the other arrives, neither stretched. */
+html:active-view-transition-type(next, prev)::view-transition-old(reel-title),
+html:active-view-transition-type(next, prev)::view-transition-new(reel-title) {
+	width: auto;
+	height: 100%;
+	max-width: none;
+	animation: reel-fade 250ms ease-in both reverse;
+}
+html:active-view-transition-type(next, prev)::view-transition-new(reel-title) {
+	animation: reel-fade 400ms 300ms ease-out both;
+}
+
+@keyframes reel-fade {
+	from {
+		opacity: 0;
+	}
+}

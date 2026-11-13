@@ -1,0 +1,132 @@
+---
+import { getImage, Image } from "astro:assets";
+import still from "@/assets/hero/barge-from-afar.jpg";
+import Clips from "@/components/clips/Clips.astro";
+import Footer from "@/components/footer/Footer.astro";
+import Newsletter from "@/components/newsletter/Newsletter.astro";
+import Press from "@/components/press/Press.astro";
+import LabLayout from "@/lab/LabLayout.astro";
+import { styles } from "@/lab/slit-scan/SlitScan.styles";
+import { getClips } from "@/lib/clips";
+import { getHome } from "@/lib/home";
+import { getPress } from "@/lib/press";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+
+const [site, home, clips, press, source] = await Promise.all([
+	getSite(),
+	getHome(),
+	getClips(),
+	getPress(),
+	getImage({ src: still, width: 1920 }),
+]);
+
+const NAV = [
+	{ label: "Clips", href: "#clips" },
+	{ label: "Press", href: "#press" },
+	{ label: "Newsletter", href: "#newsletter" },
+];
+const ALT = "The barge alone on open sea, seen from far above";
+---
+
+<LabLayout slug="slit-scan">
+	<header {...sx(layout.container, styles.bar)}>
+		<a href="/lab/slit-scan" {...sx(styles.wordmark)}>{site.title}</a>
+		<nav aria-label="Main" {...sx(styles.nav)}>
+			{NAV.map(({ label, href }) => <a href={href} {...sx(styles.navLink)}>{label}</a>)}
+		</nav>
+	</header>
+
+	<main data-scan data-still={source.src}>
+		<section aria-label="Intro" {...sx(layout.container, styles.hero)}>
+			<p {...sx(styles.eyebrow)}>Studies in time</p>
+			<h1 {...sx(styles.title)}>{site.title}</h1>
+			<p {...sx(styles.tagline)}>{site.tagline}</p>
+
+			<figure {...sx(styles.figure)}>
+				<div {...sx(styles.frame, styles.wide)}>
+					<Image src={still} alt={ALT} widths={[768, 1280, 1920]} sizes="100vw" loading="eager" {...sx(styles.still, styles.stillZoom)} />
+					<canvas data-plate="scan" aria-hidden="true" {...sx(styles.canvas, styles.crosshair)}></canvas>
+				</div>
+				<figcaption {...sx(styles.caption)}>
+					<span {...sx(styles.plateNo)}>Plate I · Horizontal scan</span>
+					<span {...sx(styles.how)}>
+						Every column of this frame is a different moment. One column is the present; the further from it, the
+						older the sea. Move across the picture to choose where now is. Scroll to widen the gap.
+					</span>
+					<span {...sx(styles.readout)}>Edge to now <span data-readout="scan" {...sx(styles.value)}>0.0 s</span></span>
+				</figcaption>
+			</figure>
+		</section>
+
+		<section aria-labelledby="scan-premise" {...sx(layout.container, styles.passage)}>
+			<p {...sx(styles.eyebrow)}>The premise</p>
+			<div>
+				<h2 id="scan-premise" {...sx(styles.lede)}>Out here nothing holds still long enough to be a place.</h2>
+				<p {...sx(styles.body)}>
+					Seasteading is the attempt to settle anyway: to build homes on international waters, where the ground is a
+					swell that arrived from somewhere else and is already leaving. This film follows the people trying.
+				</p>
+			</div>
+		</section>
+
+		<section aria-label="Wave record" {...sx(layout.container, styles.plate)}>
+			<div {...sx(styles.split)}>
+				<div {...sx(styles.aside)}>
+					<p {...sx(styles.plateNo)}>Plate II · Wave record</p>
+					<div {...sx(styles.frame, styles.thumb)}>
+						<Image src={still} alt="" widths={[480]} sizes="14rem" loading="lazy" {...sx(styles.still, styles.stillZoom)} />
+						<canvas data-plate="live" aria-hidden="true" {...sx(styles.canvas)}></canvas>
+						<span data-line-marker aria-hidden="true" {...sx(styles.marker)}></span>
+					</div>
+					<label {...sx(styles.field)}>
+						<span {...sx(styles.fieldLabel)}>Scan line</span>
+						<input data-line type="range" min="2" max="98" value="50" {...sx(styles.range)} />
+					</label>
+					<p {...sx(styles.note)}>
+						A single line of the picture, kept and stacked. Across is space, down is time: what passed under the line,
+						written out like a tide gauge.
+					</p>
+					<p {...sx(styles.readout)} style={{ textAlign: "left" }}>Height <span data-readout="record" {...sx(styles.value)}>0.0 s</span></p>
+				</div>
+				<div {...sx(styles.frame, styles.tall)}>
+					<Image src={still} alt="A record of one line of sea over time" widths={[768, 1280]} sizes="100vw" loading="lazy" {...sx(styles.still, styles.stillZoom)} />
+					<canvas data-plate="record" aria-hidden="true" {...sx(styles.canvas)}></canvas>
+					<span aria-hidden="true" {...sx(styles.axis, styles.axisTop)}>Now</span>
+					<span aria-hidden="true" {...sx(styles.axis, styles.axisBottom)}>Then</span>
+				</div>
+			</div>
+		</section>
+
+		<section aria-label="Radial scan" {...sx(layout.container, styles.plate)}>
+			<figure {...sx(styles.radial)}>
+				<div {...sx(styles.frame, styles.round)}>
+					<Image src={still} alt="The barge with time spreading outward from it in rings" widths={[768, 1280]} sizes="100vw" loading="lazy" {...sx(styles.still, styles.stillZoom)} />
+					<canvas data-plate="radial" aria-hidden="true" {...sx(styles.canvas, styles.crosshair)}></canvas>
+				</div>
+				<figcaption {...sx(styles.caption)}>
+					<span {...sx(styles.plateNo)}>Plate III · Radial scan</span>
+					<span {...sx(styles.how)}>
+						Time spreads outward like a dropped stone. The centre is the present and each ring is a little earlier.
+						Move to carry the present with you.
+					</span>
+					<span {...sx(styles.readout)}>Rim to now <span data-readout="radial" {...sx(styles.value)}>0.0 s</span></span>
+				</figcaption>
+			</figure>
+		</section>
+
+		<div {...sx(styles.rule)}></div>
+		<Clips clips={clips} />
+		<Press items={press} />
+		<Newsletter home={home} />
+	</main>
+	<Footer />
+</LabLayout>
+
+<script>
+	import { start } from "@/lab/slit-scan/scan.client";
+
+	const root = document.querySelector<HTMLElement>("[data-scan]");
+	if (root) start(root);
+</script>

@@ -1,0 +1,114 @@
+---
+import type { Home } from "@/lib/home";
+import type { SiteSettings } from "@/lib/site";
+import { sx } from "@/lib/sx";
+import { styles } from "./Forecast.styles";
+import { hero } from "./Hero.styles";
+import Media from "./Media.astro";
+import { HORIZON } from "./shared";
+
+/* The footage, quiet, under a title-safe instrument overlay. Readings are invented: a station far outside
+ * any exclusive economic zone, drifting a little as real ones do. */
+interface Props {
+	site: SiteSettings;
+	home: Home;
+}
+
+const { site, home } = Astro.props;
+---
+
+<section aria-label="Intro" data-forecast data-top="paper" {...sx(hero.section)} style={{ "--horizon": HORIZON }}>
+	<Media home={home} />
+	<div aria-hidden="true" {...sx(hero.fill, styles.veil)}></div>
+
+	<div {...sx(styles.hud)}>
+		<span aria-hidden="true" {...sx(styles.tl)}></span>
+		<span aria-hidden="true" {...sx(styles.tr)}></span>
+		<span aria-hidden="true" {...sx(styles.bl)}></span>
+		<span aria-hidden="true" {...sx(styles.br)}></span>
+
+		<p {...sx(styles.station)}>International waters</p>
+		<p aria-hidden="true" {...sx(styles.clock)}><span data-clock>00:00:00</span> UTC</p>
+
+		<div aria-hidden="true" {...sx(styles.attitude)}>
+			<span {...sx(styles.arm, styles.armLeft)}></span>
+			<span {...sx(styles.arm, styles.armRight)}></span>
+			<span {...sx(styles.ticks)}></span>
+			<span {...sx(styles.centre)}></span>
+		</div>
+
+		<div {...sx(styles.copy)}>
+			<h1 data-anchor data-hero-fade {...sx(styles.title)}>{site.title}</h1>
+			<p data-hero-fade {...sx(styles.tagline)}>{site.tagline}</p>
+		</div>
+
+		<dl {...sx(styles.readouts)}>
+			<div {...sx(styles.cell)}>
+				<dt {...sx(styles.label)}>Position</dt>
+				<dd {...sx(styles.value)}>12°04.<span data-drift="lat">2</span>′S 142°38.<span data-drift="lon">6</span>′W</dd>
+			</div>
+			<div {...sx(styles.cell)}>
+				<dt {...sx(styles.label)}>Nearest coast</dt>
+				<dd {...sx(styles.value)}>214 <span {...sx(styles.unit)}>nm</span></dd>
+			</div>
+			<div {...sx(styles.cell)}>
+				<dt {...sx(styles.label)}>Swell</dt>
+				<dd {...sx(styles.value)}>
+					<span data-drift="swell">1.8</span> <span {...sx(styles.unit)}>m</span> · <span data-drift="period">11</span> <span {...sx(styles.unit)}>s</span>
+				</dd>
+			</div>
+			<div {...sx(styles.cell)}>
+				<dt {...sx(styles.label)}>Wind</dt>
+				<dd {...sx(styles.value)}>
+					<span data-drift="wind">14</span> <span {...sx(styles.unit)}>kn</span> ENE
+				</dd>
+			</div>
+		</dl>
+	</div>
+</section>
+
+<script>
+	import { clamp, reducedMotion } from "@/lab/lib/motion";
+	import { onVariant, playVideos } from "./lifecycle";
+
+	interface Reading {
+		value: number;
+		min: number;
+		max: number;
+		step: number;
+		digits: number;
+	}
+
+	const readings: Record<string, Reading> = {
+		lat: { value: 2, min: 0, max: 9, step: 1, digits: 0 },
+		lon: { value: 6, min: 0, max: 9, step: 1, digits: 0 },
+		swell: { value: 1.8, min: 1.4, max: 2.3, step: 0.1, digits: 1 },
+		period: { value: 11, min: 10, max: 12, step: 1, digits: 0 },
+		wind: { value: 14, min: 11, max: 17, step: 1, digits: 0 },
+	};
+
+	onVariant("forecast", (root) => {
+		const stopVideos = playVideos(root);
+		const clock = root.querySelector<HTMLElement>("[data-clock]");
+		const cells = [...root.querySelectorAll<HTMLElement>("[data-drift]")];
+		const still = reducedMotion();
+
+		const tick = () => {
+			if (clock) clock.textContent = new Date().toISOString().slice(11, 19);
+			if (still) return;
+			// One reading at a time, now and then, by one step.
+			const cell = cells[Math.floor(Math.random() * cells.length * 4)];
+			const reading = cell && readings[cell.dataset.drift ?? ""];
+			if (!cell || !reading) return;
+			const next = reading.value + (Math.random() < 0.5 ? -reading.step : reading.step);
+			reading.value = clamp(next, reading.min, reading.max);
+			cell.textContent = reading.value.toFixed(reading.digits);
+		};
+		tick();
+		const timer = setInterval(tick, 1000);
+		return () => {
+			stopVideos();
+			clearInterval(timer);
+		};
+	});
+</script>

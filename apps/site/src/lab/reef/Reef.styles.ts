@@ -1,0 +1,122 @@
+import * as stylex from "@stylexjs/stylex";
+import { color, font } from "@/theme/tokens.stylex";
+import { reef } from "./palette.stylex";
+
+const label = {
+	fontFamily: font.sans,
+	fontSize: "0.75rem",
+	letterSpacing: "0.16em",
+	textTransform: "uppercase",
+} as const;
+
+export const styles = stylex.create({
+	page: {
+		position: "relative",
+		overflowX: "clip",
+		backgroundImage: `linear-gradient(${color.ocean}, ${reef.deep} 60rem)`,
+		color: color.paper,
+	},
+	header: {
+		position: "absolute",
+		insetInline: 0,
+		top: 0,
+		zIndex: 2,
+		display: "flex",
+		alignItems: "center",
+		justifyContent: "space-between",
+		gap: "1rem",
+		height: "4.5rem",
+	},
+	wordmark: { fontFamily: font.hero, fontWeight: 900, fontSize: "1.25rem", whiteSpace: "nowrap" },
+	nav: { display: "flex", gap: { default: "1rem", "@media (min-width: 48rem)": "2.25rem" } },
+	navLink: {
+		...label,
+		fontSize: { default: "0.6875rem", "@media (min-width: 48rem)": "0.8125rem" },
+		letterSpacing: { default: "0.1em", "@media (min-width: 48rem)": "0.14em" },
+		color: { default: color.paper65, ":hover": color.paper },
+		outline: { default: "none", ":focus-visible": "1px solid currentColor" },
+		outlineOffset: "6px",
+		transitionProperty: "color",
+		transitionDuration: "150ms",
+	},
+	hero: { position: "relative", height: "100svh", minHeight: "36rem" },
+	copy: {
+		position: "absolute",
+		insetInline: 0,
+		top: "24%",
+		zIndex: 1,
+		marginInline: "auto",
+		width: "fit-content",
+		maxWidth: "100%",
+		paddingInline: "1.5rem",
+		textAlign: "center",
+	},
+	title: {
+		fontFamily: font.hero,
+		fontWeight: 900,
+		fontSize: "min(12.4vw, 8.5rem)",
+		lineHeight: 1,
+		whiteSpace: "nowrap",
+		textTransform: "uppercase",
+	},
+	tagline: {
+		marginTop: "0.75rem",
+		fontStyle: "italic",
+		fontSize: { default: "1.25rem", "@media (min-width: 48rem)": "1.75rem" },
+		color: color.paper85,
+	},
+	hint: { ...label, marginTop: "1.5rem", color: color.paper50 },
+	touch: { display: { default: "none", "@media (pointer: coarse)": "inline" } },
+	fine: { display: { default: "inline", "@media (pointer: coarse)": "none" } },
+	/** Open water between sections: where the reef has room. */
+	clearing: {
+		position: "relative",
+		height: { default: "19rem", "@media (min-width: 48rem)": "28rem" },
+	},
+	/** A zero-size point a colony grows from: `--x`/`--y` are percentages of its clearing. */
+	anchor: {
+		position: "absolute",
+		left: "calc(var(--x) * 1%)",
+		top: "calc(var(--y) * 1%)",
+		width: 0,
+		height: 0,
+	},
+	wide: { display: { default: "none", "@media (min-width: 64rem)": "block" } },
+	planted: { position: "absolute", width: 0, height: 0 },
+	colony: { position: "absolute", pointerEvents: "none", maxWidth: "none" },
+	block: { position: "relative", zIndex: 1 },
+	passage: {
+		position: "relative",
+		zIndex: 1,
+		marginInline: "auto",
+		width: "fit-content",
+		maxWidth: "min(100% - 3rem, 34rem)",
+		textAlign: "center",
+	},
+	eyebrow: { ...label, color: reef.coral },
+	heading: {
+		marginTop: "1rem",
+		fontFamily: font.hero,
+		fontWeight: 900,
+		fontSize: { default: "2.25rem", "@media (min-width: 48rem)": "3.5rem" },
+		lineHeight: 1.05,
+	},
+	body: {
+		marginTop: "1.25rem",
+		fontSize: { default: "1.0625rem", "@media (min-width: 48rem)": "1.1875rem" },
+		lineHeight: 1.6,
+		color: color.paper85,
+	},
+	caption: {
+		...label,
+		position: "relative",
+		zIndex: 1,
+		marginInline: "auto",
+		width: "fit-content",
+		maxWidth: "calc(100% - 3rem)",
+		paddingBlock: "0.5rem",
+		textAlign: "center",
+		lineHeight: 1.8,
+		color: color.paper50,
+	},
+});

@@ -1,0 +1,110 @@
+---
+import { getImage } from "astro:assets";
+import still from "@/assets/hero/barge-from-afar.jpg";
+import Clips from "@/components/clips/Clips.astro";
+import Footer from "@/components/footer/Footer.astro";
+import Newsletter from "@/components/newsletter/Newsletter.astro";
+import Press from "@/components/press/Press.astro";
+import LabLayout from "@/lab/LabLayout.astro";
+import { styles } from "@/lab/prism/prism.styles";
+import { getClips } from "@/lib/clips";
+import { getHome } from "@/lib/home";
+import { NAV } from "@/lib/nav";
+import { getPress } from "@/lib/press";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+
+const [site, home, clips, press, photo] = await Promise.all([
+	getSite(),
+	getHome(),
+	getClips(),
+	getPress(),
+	getImage({ src: still, width: 1920, format: "jpg", quality: 82 }),
+]);
+const HORIZON = 0.178;
+const links = NAV.map(({ label, href }) => ({ label, href: href.replace(/^\//, "") }));
+---
+
+<LabLayout slug="prism">
+	<header data-prism-header {...sx(styles.header)}>
+		<a href="#top" {...sx(styles.mark)}>{site.title}</a>
+		<nav aria-label="Main" {...sx(styles.nav)}>
+			{links.map(({ label, href }) => <a href={href} {...sx(styles.link)}>{label}</a>)}
+		</nav>
+	</header>
+
+	<main id="top">
+		<section aria-label="Intro" data-prism {...sx(styles.dive)}>
+			<div {...sx(styles.stage)}>
+				<img
+					src={photo.src}
+					alt="The barge alone on open sea, seen from far above"
+					fetchpriority="high"
+					{...sx(styles.fill, styles.photo)}
+					style={{ objectPosition: `50% ${HORIZON * 100}%` }}
+				/>
+				<canvas
+					aria-hidden="true"
+					data-photo={photo.src}
+					data-title={site.title}
+					data-horizon={HORIZON}
+					{...sx(styles.fill, styles.canvas)}
+				></canvas>
+				<div aria-hidden="true" {...sx(styles.fill, styles.veil)}></div>
+				<h1 data-flat={sx(styles.titleGlass).class} {...sx(styles.title)}>{site.title}</h1>
+				<div {...sx(styles.foot)}>
+					<p {...sx(styles.tagline)}>{site.tagline}</p>
+					<span {...sx(styles.cue)}>Scroll to go under</span>
+					<span aria-hidden="true" {...sx(styles.plumb)}></span>
+				</div>
+			</div>
+		</section>
+
+		<section aria-labelledby="prism-passage" {...sx(styles.passage)}>
+			<p {...sx(styles.eyebrow)}>Beneath the title</p>
+			<h2 id="prism-passage" {...sx(styles.statement)}>Seen through water, every border bends.</h2>
+			<p {...sx(styles.body)}>
+				Past the last national limit the sea belongs to no one. Seasteaders want to build homes there, afloat
+				and for good. This film follows the people trying.
+			</p>
+		</section>
+
+		<Clips clips={clips} />
+		<Press items={press} />
+		<Newsletter home={home} />
+	</main>
+	<Footer />
+</LabLayout>
+
+<script>
+	import { diveProgress, mountGlass } from "@/lab/prism/scene";
+
+	const section = document.querySelector<HTMLElement>("[data-prism]");
+	const header = document.querySelector<HTMLElement>("[data-prism-header]");
+	const canvas = section?.querySelector("canvas");
+	const title = section?.querySelector("h1");
+
+	if (section && canvas) {
+		let level = 0;
+		let redraw = () => {};
+		const update = () => {
+			level = diveProgress(section);
+			section.style.setProperty("--level", String(level));
+			header?.style.setProperty("--bar", String(Math.min(Math.max(level * 2.5 - 1.2, 0), 1)));
+			redraw();
+		};
+		update();
+		addEventListener("scroll", update, { passive: true });
+		addEventListener("resize", update);
+
+		const { photo = "", title: text = "", horizon = "0.178" } = canvas.dataset;
+		mountGlass(canvas, { photo, title: text, horizon: Number(horizon), level: () => level })
+			.then((scene) => {
+				if (!scene) return;
+				redraw = scene.redraw;
+				canvas.setAttribute("data-ready", "");
+				title?.classList.add(...(title.dataset.flat ?? "").split(" ").filter(Boolean));
+			})
+			.catch(() => {});
+	}
+</script>

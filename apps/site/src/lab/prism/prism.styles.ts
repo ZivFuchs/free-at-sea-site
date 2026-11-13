@@ -1,0 +1,161 @@
+import * as stylex from "@stylexjs/stylex";
+import { color, font } from "@/theme/tokens.stylex";
+
+const focus = {
+	outline: { default: "none", ":focus-visible": "1px solid currentColor" },
+	outlineOffset: "6px",
+} as const;
+
+const sink = stylex.keyframes({
+	"0%, 100%": { transform: "translateY(0)", opacity: 0.25 },
+	"50%": { transform: "translateY(0.5rem)", opacity: 0.9 },
+});
+
+export const styles = stylex.create({
+	/** `--level` (0–1, set from scroll): how far the water has risen over the title. */
+	header: {
+		position: "fixed",
+		top: 0,
+		insetInline: 0,
+		zIndex: 40,
+		display: "flex",
+		alignItems: "center",
+		justifyContent: "space-between",
+		height: "4.5rem",
+		paddingInline: { default: "1.5rem", "@media (min-width: 48rem)": "2.5rem" },
+		color: color.paper,
+		backgroundColor: "color-mix(in oklab, var(--app-ocean) calc(var(--bar, 0) * 88%), transparent)",
+		backdropFilter: "blur(calc(var(--bar, 0) * 12px))",
+	},
+	mark: {
+		...focus,
+		fontFamily: font.hero,
+		fontWeight: 900,
+		fontSize: "1.375rem",
+		whiteSpace: "nowrap",
+		opacity: "var(--bar, 0)",
+	},
+	nav: { display: "flex", gap: { default: "1.25rem", "@media (min-width: 48rem)": "2.25rem" } },
+	link: {
+		...focus,
+		fontFamily: font.sans,
+		fontSize: { default: "0.6875rem", "@media (min-width: 48rem)": "0.8125rem" },
+		letterSpacing: "0.14em",
+		textTransform: "uppercase",
+		color: { default: color.paper85, ":hover": color.paper },
+		textShadow: "0 1px 12px rgb(0 20 40 / 0.5)",
+	},
+	dive: {
+		position: "relative",
+		height: { default: "240svh", "@media (prefers-reduced-motion: reduce)": "170svh" },
+	},
+	stage: {
+		position: "sticky",
+		top: 0,
+		height: "100svh",
+		minHeight: "32rem",
+		overflow: "hidden",
+		backgroundColor: color.ink,
+	},
+	fill: { position: "absolute", inset: 0, width: "100%", height: "100%" },
+	photo: { objectFit: "cover" },
+	canvas: {
+		display: "block",
+		opacity: { default: 0, ":is([data-ready])": 1 },
+		transitionProperty: "opacity",
+		transitionDuration: "1.4s",
+		transitionTimingFunction: "ease-out",
+	},
+	/** The deep closing over the stage as the title goes under, landing on the page ground. */
+	veil: {
+		backgroundImage: `linear-gradient(to bottom, color-mix(in oklab, ${color.ocean} 45%, oklch(0.42 0.08 205 / 0.5)), ${color.ocean} 85%)`,
+		opacity: "calc(var(--level, 0) * var(--level, 0))",
+		pointerEvents: "none",
+	},
+	/** The flat title: what shows without WebGL2, and what assistive tech reads either way. */
+	title: {
+		position: "absolute",
+		insetInline: 0,
+		top: "34%",
+		margin: 0,
+		textAlign: "center",
+		fontFamily: font.hero,
+		fontWeight: 900,
+		fontSize: "min(13.3vw, 15.4svh)",
+		lineHeight: 1,
+		textTransform: "uppercase",
+		whiteSpace: "nowrap",
+		color: color.paper,
+		opacity: 0.9,
+	},
+	titleGlass: {
+		width: "1px",
+		height: "1px",
+		overflow: "hidden",
+		clipPath: "inset(50%)",
+		opacity: 0,
+	},
+	foot: {
+		position: "absolute",
+		insetInline: 0,
+		bottom: { default: "4.5rem", "@media (min-width: 48rem)": "3rem" },
+		display: "flex",
+		flexDirection: "column",
+		alignItems: "center",
+		gap: "1.25rem",
+		paddingInline: "1.5rem",
+		textAlign: "center",
+		color: color.paper,
+		opacity: "calc(1 - var(--level, 0) * 2.5)",
+	},
+	tagline: {
+		fontStyle: "italic",
+		fontSize: { default: "1.375rem", "@media (min-width: 48rem)": "1.75rem" },
+		lineHeight: 1.3,
+		textShadow: "0 1px 18px rgb(0 20 40 / 0.55)",
+	},
+	cue: {
+		fontFamily: font.sans,
+		fontSize: "0.6875rem",
+		letterSpacing: "0.2em",
+		textTransform: "uppercase",
+		color: color.paper70,
+	},
+	plumb: {
+		width: "1px",
+		height: "2rem",
+		backgroundColor: color.paper50,
+		animationName: { default: sink, "@media (prefers-reduced-motion: reduce)": "none" },
+		animationDuration: "2.8s",
+		animationTimingFunction: "ease-in-out",
+		animationIterationCount: "infinite",
+	},
+	passage: {
+		maxWidth: "44rem",
+		marginInline: "auto",
+		paddingInline: "1.5rem",
+		paddingBlock: { default: "5rem 3rem", "@media (min-width: 48rem)": "8rem 5rem" },
+		textAlign: "center",
+		color: color.paper,
+	},
+	eyebrow: {
+		fontFamily: font.sans,
+		fontSize: "0.75rem",
+		letterSpacing: "0.18em",
+		textTransform: "uppercase",
+		color: color.aqua,
+	},
+	statement: {
+		marginTop: "1.25rem",
+		fontFamily: font.hero,
+		fontWeight: 900,
+		fontSize: { default: "2rem", "@media (min-width: 48rem)": "3.25rem" },
+		lineHeight: 1.08,
+	},
+	body: {
+		marginTop: "1.5rem",
+		fontSize: { default: "1.0625rem", "@media (min-width: 48rem)": "1.25rem" },
+		lineHeight: 1.6,
+		color: color.paper85,
+	},
+});

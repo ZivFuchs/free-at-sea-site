@@ -1,0 +1,143 @@
+---
+import Clips from "@/components/clips/Clips.astro";
+import Footer from "@/components/footer/Footer.astro";
+import Header from "@/components/header/Header.astro";
+import Newsletter from "@/components/newsletter/Newsletter.astro";
+import Press from "@/components/press/Press.astro";
+import LabLayout from "@/lab/LabLayout.astro";
+import { BEATS, CLOSING } from "@/lab/tessellate/copy";
+import { styles } from "@/lab/tessellate/Tessellate.styles";
+import { getClips } from "@/lib/clips";
+import { getHome } from "@/lib/home";
+import { getPress } from "@/lib/press";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+
+const [site, home, clips, press] = await Promise.all([
+	getSite(),
+	getHome(),
+	getClips(),
+	getPress(),
+]);
+---
+
+<LabLayout slug="tessellate">
+	<div aria-hidden="true" {...sx(styles.ground)}></div>
+	<canvas data-tessellate aria-hidden="true" {...sx(styles.canvas)}></canvas>
+
+	<div {...sx(styles.page)}>
+		<Header overlay />
+		<main>
+			<div data-story>
+				<section aria-label="Intro" {...sx(styles.hero)}>
+					<div {...sx(styles.heroCopy)}>
+						<h1 data-hero-title data-hero-fade {...sx(styles.title)}>{site.title}</h1>
+						<p data-hero-fade {...sx(styles.tagline)}>{site.tagline}</p>
+					</div>
+					<p data-hero-fade {...sx(styles.cue)}>
+						Scroll to assemble
+						<span aria-hidden="true" {...sx(styles.cueLine)}></span>
+					</p>
+				</section>
+
+				{
+					BEATS.map(({ number, label, heading, body }, i) => (
+						<section {...sx(layout.container, styles.beat, i % 2 === 1 && styles.beatEnd)}>
+							<div {...sx(styles.card)}>
+								<p {...sx(styles.eyebrow)}>
+									<span {...sx(styles.number)}>{number}</span>
+									{label}
+								</p>
+								<h2 {...sx(styles.heading)}>{heading}</h2>
+								<p {...sx(styles.body)}>{body}</p>
+							</div>
+						</section>
+					))
+				}
+
+				<section {...sx(layout.container, styles.closing)}>
+					<div>
+						<h2 {...sx(styles.closingHeading)}>{CLOSING.heading}</h2>
+						<p {...sx(styles.closingBody)}>{CLOSING.body}</p>
+					</div>
+				</section>
+			</div>
+
+			<div aria-hidden="true" {...sx(styles.shore)}></div>
+			<div {...sx(styles.sections)}>
+				<Clips clips={clips} />
+				<Press items={press} />
+				<Newsletter home={home} />
+			</div>
+		</main>
+		<Footer />
+	</div>
+
+	<p data-tally aria-hidden="true" {...sx(styles.tally)}>
+		<span {...sx(styles.tallyLabel)}>Platforms joined</span>
+		<span data-tally-count></span>
+	</p>
+</LabLayout>
+
+<script>
+	import { clamp, damp, onFrame, reducedMotion, smoothstep } from "@/lab/lib/motion";
+
+	const canvas = document.querySelector<HTMLCanvasElement>("canvas[data-tessellate]");
+	const story = document.querySelector<HTMLElement>("[data-story]");
+	const tally = document.querySelector<HTMLElement>("[data-tally]");
+	const count = tally?.querySelector<HTMLElement>("[data-tally-count]");
+	// This hero's sky is always dark enough for light text, whatever the CMS poster is.
+	document.querySelector<HTMLElement>("[data-site-header]")?.style.removeProperty("--top");
+
+	const SLOW_FRAME = 1 / 38;
+	const number = new Intl.NumberFormat("en-GB");
+
+	const start = async (canvas: HTMLCanvasElement, story: HTMLElement) => {
+		const { createScene } = await import("@/lab/tessellate/scene");
+		const scene = createScene(canvas, { compact: matchMedia("(max-width: 47.99rem)").matches });
+		const still = reducedMotion();
+		const total = number.format(scene.total);
+
+		const goal = () => {
+			const r = story.getBoundingClientRect();
+			return clamp(-r.top / Math.max(r.height - innerHeight, 1));
+		};
+		let progress = goal();
+		let slow = 0;
+		let shown = -1;
+
+		const loop = onFrame(story, (time, dt) => {
+			const to = goal();
+			progress = still ? to : damp(progress, to, 5, dt);
+			scene.frame(still ? 12 : time, progress);
+			canvas.setAttribute("data-live", "");
+
+			const now = scene.joined(progress);
+			if (now !== shown && count) {
+				shown = now;
+				count.textContent = `${number.format(now).padStart(total.length, "0")} / ${total}`;
+			}
+			tally?.style.setProperty("--tally", String(smoothstep(0.04, 0.1, progress) * (1 - smoothstep(0.97, 1, to))));
+
+			slow = dt > SLOW_FRAME ? slow + 1 : Math.max(slow - 1, 0);
+			if (slow > 45) {
+				slow = 0;
+				scene.coarsen();
+			}
+		});
+
+		new ResizeObserver(() => {
+			scene.resize();
+			loop.redraw();
+		}).observe(canvas);
+		addEventListener("scroll", loop.redraw, { passive: true });
+		canvas.addEventListener("webglcontextlost", () => canvas.removeAttribute("data-live"));
+		addEventListener("pagehide", () => {
+			loop.stop();
+			scene.dispose();
+		});
+	};
+
+	if (canvas && story) start(canvas, story).catch((error) => console.warn("Tessellate: no WebGL scene", error));
+</script>

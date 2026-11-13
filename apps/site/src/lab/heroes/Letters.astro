@@ -1,0 +1,92 @@
+---
+import type { Home } from "@/lib/home";
+import type { SiteSettings } from "@/lib/site";
+import { sx } from "@/lib/sx";
+import { styles } from "./Letters.styles";
+import Media from "./Media.astro";
+
+/* The film inside the title: paper screened over the footage, the letters its only windows. Scrolling zooms
+ * into one stem until you are through it. */
+interface Props {
+	site: SiteSettings;
+	home: Home;
+}
+
+const { site, home } = Astro.props;
+const words = site.title.split(" ");
+/** The zoom lands on a letter with ink at its centre: the stem of a T, I or L nearest the middle. */
+const STEMS = /[til]/i;
+const middle = Math.floor(words.length / 2);
+const eyeWord = [middle, ...words.keys()].find((i) => STEMS.test(words[i] ?? "")) ?? -1;
+const eyeAt = eyeWord < 0 ? -1 : (words[eyeWord] ?? "").search(STEMS);
+---
+
+<section aria-label="Intro" data-letters data-top="ink" {...sx(styles.section)}>
+	<div {...sx(styles.stage)}>
+		<Media home={home} />
+		<div {...sx(styles.ground)}>
+			<div data-zoom {...sx(styles.zoom)}>
+				<h1 {...sx(styles.title)}>
+					{
+						words.map((word, i) => (
+							<Fragment>
+								<span {...sx(styles.word)}>
+									{i === eyeWord ? (
+										<Fragment>
+											{word.slice(0, eyeAt)}
+											<span data-eye>{word[eyeAt]}</span>
+											{word.slice(eyeAt + 1)}
+										</Fragment>
+									) : (
+										word
+									)}
+								</span>{" "}
+							</Fragment>
+						))
+					}
+				</h1>
+				<p {...sx(styles.tagline)}>{site.tagline}</p>
+			</div>
+		</div>
+		<p aria-hidden="true" {...sx(styles.after)}>{site.tagline}</p>
+	</div>
+	<div data-anchor {...sx(styles.anchor)}></div>
+</section>
+
+<script>
+	import { reducedMotion, smoothstep } from "@/lab/lib/motion";
+	import { onScrollThrough, onVariant, playVideos } from "./lifecycle";
+
+	/** Enough for a letter stem to outgrow the screen. */
+	const MAX_ZOOM = 90;
+
+	onVariant("letters", (root) => {
+		const section = root.querySelector<HTMLElement>("[data-letters]");
+		const zoom = root.querySelector<HTMLElement>("[data-zoom]");
+		if (!section || !zoom) return;
+		const stopVideos = playVideos(root);
+		if (reducedMotion()) return stopVideos;
+
+		const eye = zoom.querySelector<HTMLElement>("[data-eye]");
+		const aim = () => {
+			if (!eye) return;
+			zoom.style.setProperty("--eye-x", `${eye.offsetLeft + eye.offsetWidth / 2}px`);
+			zoom.style.setProperty("--eye-y", `${eye.offsetTop + eye.offsetHeight / 2}px`);
+		};
+		aim();
+		const sizes = new ResizeObserver(aim);
+		sizes.observe(zoom);
+
+		const stopScroll = onScrollThrough(section, 1.6, (p) => {
+			section.style.setProperty("--zoom", String(MAX_ZOOM ** (smoothstep(0, 0.82, p) ** 1.5)));
+			section.style.setProperty("--ground", String(1 - smoothstep(0.62, 0.84, p)));
+			section.style.setProperty("--lede", String(1 - smoothstep(0, 0.12, p)));
+			section.style.setProperty("--after", String(smoothstep(0.8, 0.95, p) * 0.85));
+		});
+		return () => {
+			stopVideos();
+			stopScroll();
+			sizes.disconnect();
+		};
+	});
+</script>

@@ -1,0 +1,11 @@
+---
+import { sx } from "@/lib/sx";
+import { styles } from "./Reef.styles";
+import type { Seed } from "./seed";
+
+type Props = Seed;
+
+const { kind, x, y, r = 1, dir = -90, wide = false } = Astro.props;
+---
+
+<i data-reef={kind} data-r={r} data-dir={dir} style={`--x:${x};--y:${y}`} {...sx(styles.anchor, wide && styles.wide)}></i>

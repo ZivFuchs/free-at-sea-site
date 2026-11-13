@@ -1,0 +1,146 @@
+---
+import Clips from "@/components/clips/Clips.astro";
+import Footer from "@/components/footer/Footer.astro";
+import Header from "@/components/header/Header.astro";
+import Newsletter from "@/components/newsletter/Newsletter.astro";
+import Press from "@/components/press/Press.astro";
+import { styles } from "@/lab/almanac/Almanac.styles";
+import { POSITION, ZONE_LABEL } from "@/lab/almanac/place";
+import LabLayout from "@/lab/LabLayout.astro";
+import { getClips } from "@/lib/clips";
+import { getHome } from "@/lib/home";
+import { getPress } from "@/lib/press";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+
+const [site, home, clips, press] = await Promise.all([
+	getSite(),
+	getHome(),
+	getClips(),
+	getPress(),
+]);
+
+/** Filled in by `almanac.client.ts`; `field` names its `data-field`. */
+const cells = [
+	{ term: "Position", value: POSITION, subs: ["High seas, North Pacific"] },
+	{ term: `Zone time · ${ZONE_LABEL}`, field: "time", subs: [{ field: "date" }] },
+	{ term: "Sun altitude", field: "sunAlt", subs: [{ field: "sunBrg" }] },
+	{
+		termField: "event0Kind",
+		field: "event0Time",
+		subs: [{ field: "event1Kind" }, { field: "event1Time" }],
+	},
+	{ term: "Moon", field: "moonName", subs: [{ field: "moonLit" }, { field: "moonAlt" }] },
+	{ term: "Tide · estimate", field: "tide", subs: [{ field: "tideState" }, { field: "tideNext" }] },
+] as const;
+const HOURS = ["00", "06", "12", "18", "24"];
+---
+
+<LabLayout slug="almanac">
+	<Header overlay />
+	<main id="main">
+		<section aria-label="Intro" data-almanac-hero {...sx(styles.hero)}>
+			<canvas data-sky aria-hidden="true" {...sx(styles.canvas)}></canvas>
+			<div aria-hidden="true" {...sx(styles.veil)}></div>
+			<div data-horizon {...sx(styles.horizon)}></div>
+			<div data-compass aria-hidden="true" {...sx(styles.compass)}>
+				<div {...sx(styles.tick)}><span {...sx(styles.tickLabel)}></span></div>
+			</div>
+			<p data-body="sun" data-field="sunCaption" aria-hidden="true" {...sx(styles.body)}></p>
+			<p data-body="moon" data-field="moonCaption" aria-hidden="true" {...sx(styles.body)}></p>
+
+			<div {...sx(styles.copy)}>
+				<h1 data-hero-title data-hero-fade {...sx(styles.title)}>{site.title}</h1>
+				<p data-hero-fade {...sx(styles.tagline)}>{site.tagline}</p>
+				<p {...sx(styles.light)}><span data-field="light">The sky</span> at {POSITION}</p>
+			</div>
+
+			<div {...sx(layout.container, styles.strip)}>
+				<dl aria-label="Almanac for this moment" {...sx(styles.cells)}>
+					{
+						cells.map((cell) => (
+							<div {...sx(styles.cell)}>
+								<dt {...sx(styles.term)} data-field={"termField" in cell ? cell.termField : undefined}>
+									{"term" in cell ? cell.term : "Next"}
+								</dt>
+								<dd {...sx(styles.value)} data-field={"field" in cell ? cell.field : undefined}>
+									{"value" in cell ? cell.value : "–"}
+								</dd>
+								<dd {...sx(styles.sub)}>
+									{cell.subs.map((sub, i) => (
+										<Fragment>
+											{i > 0 && " · "}
+											{typeof sub === "string" ? sub : <span data-field={sub.field} />}
+										</Fragment>
+									))}
+								</dd>
+							</div>
+						))
+					}
+				</dl>
+			</div>
+		</section>
+
+		<section aria-labelledby="day-heading" {...sx(styles.section)}>
+			<div {...sx(layout.container, styles.split)}>
+				<div>
+					<p {...sx(styles.kicker)}>{POSITION}</p>
+					<h2 id="day-heading" {...sx(styles.heading)}>The only clock out here</h2>
+					<p {...sx(styles.prose)}>
+						Beyond every coast, the day is kept by the sky. This page reads it live for one point on the high seas,
+						some nine hundred nautical miles from the nearest land: the height of the sun, the phase of the moon, the
+						turn of the tide. Come back at another hour and it will have changed.
+					</p>
+				</div>
+				<figure data-chart aria-label="Sun and moon altitude and estimated tide across today, zone time" {...sx(styles.chart)}>
+					<div {...sx(styles.plot)}>
+						<div {...sx(styles.under)}></div>
+						<svg viewBox="0 0 1440 300" preserveAspectRatio="none" aria-hidden="true" {...sx(styles.svg)}>
+							<path data-path="moon" vector-effect="non-scaling-stroke" {...sx(styles.moonPath)}></path>
+							<path data-path="sun" vector-effect="non-scaling-stroke" {...sx(styles.sunPath)}></path>
+						</svg>
+						<span {...sx(styles.horizonTag)}>Horizon</span>
+						<div {...sx(styles.now)}></div>
+						<div {...sx(styles.dot, styles.moonDot)}></div>
+						<div {...sx(styles.dot, styles.sunDot)}></div>
+					</div>
+					<div {...sx(styles.tide)}>
+						<svg viewBox="0 0 1440 100" preserveAspectRatio="none" aria-hidden="true" {...sx(styles.svg)}>
+							<path data-path="tide" vector-effect="non-scaling-stroke" {...sx(styles.tidePath)}></path>
+						</svg>
+						<div {...sx(styles.now)}></div>
+					</div>
+					<div aria-hidden="true" {...sx(styles.hours)}>{HOURS.map((h) => <span>{h}</span>)}</div>
+					<figcaption {...sx(styles.legend)}>
+						<span {...sx(styles.key)}><i {...sx(styles.swatch)}></i>Sun</span>
+						<span {...sx(styles.key)}><i {...sx(styles.swatch, styles.swatchMoon)}></i>Moon</span>
+						<span {...sx(styles.key)}><i {...sx(styles.swatch, styles.swatchTide)}></i>Tide, estimated</span>
+					</figcaption>
+				</figure>
+			</div>
+		</section>
+
+		<Clips clips={clips} />
+		<Press items={press} />
+		<Newsletter home={home} />
+	</main>
+	<Footer />
+
+	<div aria-hidden="true" {...sx(styles.gauge)}>
+		<span {...sx(styles.gaugeLabel)}>Tide</span>
+		<div {...sx(styles.tube)}><div {...sx(styles.water)}></div></div>
+		<span {...sx(styles.gaugeLabel)}>Est.</span>
+	</div>
+
+	<div role="group" aria-label="Preview another hour" {...sx(styles.scrubber)}>
+		<output data-field="scrub" for="almanac-scrub" {...sx(styles.scrubLabel)}>Now</output>
+		<label for="almanac-scrub" {...sx(styles.srOnly)}>Hours from now</label>
+		<input id="almanac-scrub" data-scrub type="range" min="-720" max="720" step="5" value="0" {...sx(styles.range)} />
+		<button type="button" data-hold aria-pressed="false" {...sx(styles.hold)}>Hold</button>
+	</div>
+</LabLayout>
+
+<script>
+	import "@/lab/almanac/almanac.client";
+</script>

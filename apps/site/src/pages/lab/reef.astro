@@ -1,0 +1,131 @@
+---
+import Clips from "@/components/clips/Clips.astro";
+import Footer from "@/components/footer/Footer.astro";
+import Newsletter from "@/components/newsletter/Newsletter.astro";
+import Press from "@/components/press/Press.astro";
+import LabLayout from "@/lab/LabLayout.astro";
+import Anchor from "@/lab/reef/Anchor.astro";
+import { reef } from "@/lab/reef/palette.stylex";
+import { styles } from "@/lab/reef/Reef.styles";
+import type { Seed } from "@/lab/reef/seed";
+import { getClips } from "@/lib/clips";
+import { getHome } from "@/lib/home";
+import { getPress } from "@/lib/press";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+
+const [site, home, clips, press] = await Promise.all([
+	getSite(),
+	getHome(),
+	getClips(),
+	getPress(),
+]);
+const NAV = ["Clips", "Press", "Newsletter"];
+const tints = [reef.coral, reef.ochre, reef.violet, reef.sea].join("|");
+
+const HERO: Seed[] = [
+	{ kind: "brain", x: 50, y: 78, r: 0.82 },
+	{ kind: "fan", x: 4, y: 99, r: 1.1, dir: -62 },
+	{ kind: "stag", x: 96, y: 99, r: 0.95, dir: -118 },
+	{ kind: "polyp", x: 84, y: 62, r: 0.6, wide: true },
+	{ kind: "fan", x: 100, y: 30, r: 0.8, dir: 172, wide: true },
+];
+const CLEARINGS: Seed[][] = [
+	[
+		{ kind: "polyp", x: 24, y: 48, r: 0.9 },
+		{ kind: "fan", x: 100, y: 62, r: 1.05, dir: 188 },
+		{ kind: "stag", x: 52, y: 96, r: 0.7, dir: -80, wide: true },
+	],
+	[
+		{ kind: "brain", x: 70, y: 50, r: 0.95 },
+		{ kind: "stag", x: 0, y: 78, r: 1, dir: -22 },
+		{ kind: "fan", x: 36, y: 97, r: 0.8, dir: -95, wide: true },
+	],
+	[
+		{ kind: "fan", x: 50, y: 97, r: 1.15, dir: -90 },
+		{ kind: "polyp", x: 86, y: 40, r: 0.62, wide: true },
+		{ kind: "brain", x: 13, y: 46, r: 0.62, wide: true },
+	],
+	[
+		{ kind: "brain", x: 28, y: 50, r: 0.92 },
+		{ kind: "stag", x: 100, y: 88, r: 1, dir: -152 },
+		{ kind: "polyp", x: 62, y: 44, r: 0.55, wide: true },
+	],
+];
+---
+
+<LabLayout slug="reef">
+	<div
+		data-reef-field
+		data-bone={reef.bone}
+		data-tints={tints}
+		data-colony-class={sx(styles.colony).class}
+		data-anchor-class={sx(styles.planted).class}
+		{...sx(styles.page)}
+	>
+		<header data-reef-avoid {...sx(layout.container, styles.header)}>
+			<a href="#top" {...sx(styles.wordmark)}>{site.title}</a>
+			<nav aria-label="Main" {...sx(styles.nav)}>
+				{NAV.map((name) => <a href={`#${name.toLowerCase()}`} {...sx(styles.navLink)}>{name}</a>)}
+			</nav>
+		</header>
+
+		<main id="top">
+			<section aria-label="Intro" {...sx(styles.hero)}>
+				{HERO.map((s) => <Anchor {...s} />)}
+				<div data-reef-avoid {...sx(styles.copy)}>
+					<h1 {...sx(styles.title)}>{site.title}</h1>
+					<p {...sx(styles.tagline)}>{site.tagline}</p>
+					<p {...sx(styles.hint)}>
+						<span {...sx(styles.fine)}>Click</span><span {...sx(styles.touch)}>Tap</span> open water to plant a colony
+					</p>
+				</div>
+			</section>
+
+			<div aria-hidden="true" {...sx(styles.clearing)}>{CLEARINGS[0]?.map((s) => <Anchor {...s} />)}</div>
+
+			<section data-reef-avoid aria-labelledby="reef-heading" {...sx(styles.passage)}>
+				<p {...sx(styles.eyebrow)}>How a reef begins</p>
+				<h2 id="reef-heading" {...sx(styles.heading)}>Nobody plans a reef.</h2>
+				<p {...sx(styles.body)}>
+					One polyp settles on bare rock and builds. Others settle beside it. Given time, the result is the
+					largest structure any living thing has made, and no one designed it.
+				</p>
+				<p {...sx(styles.body)}>
+					Seasteaders describe their cities the same way: one platform, then another, each free to join or to leave.
+				</p>
+			</section>
+
+			<div aria-hidden="true" {...sx(styles.clearing)}>{CLEARINGS[1]?.map((s) => <Anchor {...s} />)}</div>
+			<div data-reef-avoid {...sx(styles.block)}><Clips clips={clips} /></div>
+			<div aria-hidden="true" {...sx(styles.clearing)}>{CLEARINGS[2]?.map((s) => <Anchor {...s} />)}</div>
+			<div data-reef-avoid {...sx(styles.block)}><Press items={press} /></div>
+			<div aria-hidden="true" {...sx(styles.clearing)}>{CLEARINGS[3]?.map((s) => <Anchor {...s} />)}</div>
+
+			<p data-reef-avoid {...sx(styles.caption)}>
+				The reef of <span data-reef-date>today</span><br />Seeded by the date. Tomorrow's will grow differently.
+			</p>
+			<div data-reef-avoid {...sx(styles.block)}><Newsletter home={home} /></div>
+		</main>
+		<div data-reef-avoid {...sx(styles.block)}><Footer /></div>
+	</div>
+</LabLayout>
+
+<script>
+	import { growReef } from "@/lab/reef/reef";
+
+	const field = document.querySelector<HTMLElement>("[data-reef-field]");
+	let started = false;
+	const start = () => {
+		if (started || !field) return;
+		started = true;
+		growReef(field);
+	};
+	// Late images shift the layout the colonies are measured against; wait for them, but not forever.
+	if (document.readyState === "complete") start();
+	else {
+		addEventListener("load", start, { once: true });
+		setTimeout(start, 2500);
+	}
+</script>

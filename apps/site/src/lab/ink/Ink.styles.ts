@@ -1,0 +1,331 @@
+import * as stylex from "@stylexjs/stylex";
+import { font } from "@/theme/tokens.stylex";
+import { ink } from "./palette.stylex";
+
+const settle = stylex.keyframes({
+	from: { opacity: 0, filter: "blur(6px)" },
+	to: { opacity: 1, filter: "blur(0)" },
+});
+
+/** On the page root: `data-ink-flat` (no WebGL) swaps the washes for flat tints. */
+export const rootMarker = stylex.defaultMarker();
+
+const label = {
+	fontFamily: font.sans,
+	fontSize: "0.6875rem",
+	letterSpacing: "0.16em",
+	textTransform: "uppercase",
+	color: ink.soft,
+} as const;
+
+const focus = {
+	outline: { default: "none", ":focus-visible": `2px solid ${ink.prussian}` },
+	outlineOffset: "4px",
+} as const;
+
+export const styles = stylex.create({
+	root: {
+		position: "relative",
+		isolation: "isolate",
+		minHeight: "100dvh",
+		overflowX: "clip",
+		backgroundColor: ink.paper,
+		backgroundImage: "var(--ink-grain, none)",
+		backgroundSize: "192px",
+		backgroundBlendMode: "multiply",
+		color: ink.ink,
+		"--focus-outline-color": ink.prussian,
+	},
+	sheet: {
+		position: "absolute",
+		inset: 0,
+		zIndex: 0,
+		width: "100%",
+		height: "100%",
+		pointerEvents: "none",
+		mixBlendMode: "multiply",
+	},
+	container: {
+		position: "relative",
+		marginInline: "auto",
+		width: "100%",
+		maxWidth: "72rem",
+		paddingInline: { default: "1.25rem", "@media (min-width: 48rem)": "2.5rem" },
+	},
+	label,
+
+	header: {
+		position: "absolute",
+		insetInline: 0,
+		top: 0,
+		zIndex: 2,
+		display: "flex",
+		alignItems: "center",
+		justifyContent: "space-between",
+		height: { default: "3.75rem", "@media (min-width: 48rem)": "4.5rem" },
+		paddingInline: { default: "1.25rem", "@media (min-width: 48rem)": "2.5rem" },
+	},
+	wordmark: {
+		...focus,
+		fontFamily: font.hero,
+		fontWeight: 900,
+		fontSize: "1.125rem",
+		letterSpacing: "0.01em",
+	},
+	nav: { display: "flex", gap: { default: "1.1rem", "@media (min-width: 48rem)": "2.25rem" } },
+	navLink: {
+		...label,
+		...focus,
+		color: { default: ink.soft, ":hover": ink.ink },
+		transitionProperty: "color",
+		transitionDuration: "150ms",
+	},
+
+	hero: {
+		position: "relative",
+		height: "100svh",
+		minHeight: "34rem",
+		"--top": { default: "3.75rem", "@media (min-width: 48rem)": "4.5rem" },
+		"--bottom": { default: "3.25rem", "@media (min-width: 48rem)": "3.75rem" },
+		"--horizon": "0.556",
+	},
+	painting: {
+		inset: {
+			default: "var(--top) 0.5rem var(--bottom)",
+			"@media (min-width: 48rem)": "var(--top) 2rem var(--bottom)",
+		},
+		width: { default: "calc(100% - 1rem)", "@media (min-width: 48rem)": "calc(100% - 4rem)" },
+		height: "calc(100% - var(--top) - var(--bottom))",
+	},
+	/** Without WebGL: the same picture as flat tints. */
+	flat: {
+		display: { default: "none", [stylex.when.ancestor("[data-ink-flat]")]: "block" },
+		position: "absolute",
+		inset: {
+			default: "var(--top) 0.5rem var(--bottom)",
+			"@media (min-width: 48rem)": "var(--top) 2rem var(--bottom)",
+		},
+		borderRadius: "1.5rem",
+		backgroundImage: `linear-gradient(to bottom, color-mix(in oklab, ${ink.prussian} 45%, ${ink.paper}), ${ink.paper} 52%, color-mix(in oklab, ${ink.sand} 25%, ${ink.paper}) 55.4%, color-mix(in oklab, ${ink.prussian} 85%, ${ink.ink}) 55.6%, color-mix(in oklab, ${ink.prussian} 55%, ${ink.paper}) 80%, ${ink.paper})`,
+	},
+	/** Sits on the painted horizon. */
+	copy: {
+		position: "absolute",
+		insetInline: 0,
+		bottom:
+			"calc(100% - var(--top) - (100% - var(--top) - var(--bottom)) * var(--horizon) + 0.35rem)",
+		zIndex: 1,
+		textAlign: "center",
+		animationName: { default: settle, "@media (prefers-reduced-motion: reduce)": "none" },
+		animationDuration: "1.8s",
+		animationDelay: "2.6s",
+		animationTimingFunction: "ease-out",
+		animationFillMode: "backwards",
+	},
+	tagline: {
+		fontStyle: "italic",
+		fontSize: { default: "1.125rem", "@media (min-width: 48rem)": "1.5rem" },
+		color: ink.ink,
+	},
+	title: {
+		marginTop: "0.15em",
+		fontFamily: font.hero,
+		fontWeight: 900,
+		fontSize: "min(12.6vw, 11rem)",
+		lineHeight: 0.9,
+		whiteSpace: "nowrap",
+		textTransform: "uppercase",
+	},
+	plate: {
+		position: "absolute",
+		insetInline: 0,
+		bottom: 0,
+		display: "flex",
+		justifyContent: "flex-end",
+		alignItems: "center",
+		height: "var(--bottom)",
+		paddingInline: { default: "1.25rem", "@media (min-width: 48rem)": "2.5rem" },
+	},
+
+	section: {
+		position: "relative",
+		paddingBlock: { default: "4.5rem", "@media (min-width: 48rem)": "7rem" },
+	},
+	premise: { maxWidth: "46rem" },
+	premiseWash: { inset: "-22% -12% -18% -18%", width: "130%", height: "140%" },
+	lede: {
+		position: "relative",
+		zIndex: 1,
+		marginTop: "1rem",
+		fontFamily: font.hero,
+		fontWeight: 900,
+		fontSize: { default: "2rem", "@media (min-width: 48rem)": "3.25rem" },
+		lineHeight: 1.08,
+	},
+	body: {
+		position: "relative",
+		zIndex: 1,
+		marginTop: "1.5rem",
+		maxWidth: "34rem",
+		fontSize: { default: "1.125rem", "@media (min-width: 48rem)": "1.25rem" },
+		lineHeight: 1.55,
+	},
+	heading: {
+		marginTop: "0.5rem",
+		fontFamily: font.hero,
+		fontWeight: 900,
+		fontSize: { default: "2.25rem", "@media (min-width: 48rem)": "3.5rem" },
+		lineHeight: 1,
+	},
+
+	prints: {
+		marginTop: { default: "2.5rem", "@media (min-width: 48rem)": "4rem" },
+		display: "grid",
+		gridTemplateColumns: { default: "1fr", "@media (min-width: 48rem)": "1fr 1fr" },
+		columnGap: "4rem",
+		rowGap: { default: "3rem", "@media (min-width: 48rem)": "5rem" },
+	},
+	/** Every other print hangs lower, like sheets pinned up to dry. */
+	printLow: { marginTop: { default: 0, "@media (min-width: 48rem)": "5rem" } },
+	print: { ...focus, display: "block" },
+	frame: { position: "relative", aspectRatio: "16 / 9" },
+	photoSheet: { inset: "-6% -5%", width: "110%", height: "112%" },
+	fallback: {
+		position: "absolute",
+		inset: 0,
+		width: "100%",
+		height: "100%",
+		objectFit: "cover",
+		borderRadius: "0.25rem",
+		mixBlendMode: "multiply",
+	},
+	caption: {
+		position: "relative",
+		zIndex: 1,
+		marginTop: "1.25rem",
+		display: "grid",
+		gridTemplateColumns: "auto 1fr auto",
+		alignItems: "baseline",
+		columnGap: "0.875rem",
+	},
+	printTitle: {
+		fontFamily: font.hero,
+		fontWeight: 900,
+		fontSize: { default: "1.375rem", "@media (min-width: 48rem)": "1.625rem" },
+		lineHeight: 1.15,
+		textDecorationLine: { default: "none", [stylex.when.ancestor(":hover")]: "underline" },
+		textDecorationThickness: "1px",
+		textUnderlineOffset: "0.2em",
+	},
+	printNote: { gridColumn: "2 / -1", marginTop: "0.375rem", color: ink.soft, lineHeight: 1.45 },
+
+	press: {
+		marginTop: { default: "2rem", "@media (min-width: 48rem)": "3rem" },
+		borderTopWidth: "1px",
+		borderTopStyle: "solid",
+		borderTopColor: ink.faint,
+	},
+	item: {
+		...focus,
+		position: "relative",
+		display: "grid",
+		gridTemplateColumns: { default: "3.5rem 1fr", "@media (min-width: 48rem)": "7rem 1fr 8rem" },
+		columnGap: { default: "1rem", "@media (min-width: 48rem)": "2rem" },
+		alignItems: "start",
+		paddingBlock: { default: "1.75rem", "@media (min-width: 48rem)": "2.25rem" },
+		borderBottomWidth: "1px",
+		borderBottomStyle: "solid",
+		borderBottomColor: ink.faint,
+	},
+	swatch: {
+		position: "relative",
+		height: { default: "2.75rem", "@media (min-width: 48rem)": "4rem" },
+	},
+	headline: {
+		marginTop: "0.375rem",
+		fontFamily: font.hero,
+		fontWeight: 900,
+		fontSize: { default: "1.375rem", "@media (min-width: 48rem)": "1.875rem" },
+		lineHeight: 1.15,
+		textDecorationLine: { default: "none", [stylex.when.ancestor(":hover")]: "underline" },
+		textDecorationThickness: "1px",
+		textUnderlineOffset: "0.2em",
+	},
+	quote: {
+		marginTop: "0.625rem",
+		maxWidth: "38rem",
+		fontStyle: "italic",
+		color: ink.soft,
+		lineHeight: 1.5,
+	},
+	date: {
+		...label,
+		gridColumn: { default: "2", "@media (min-width: 48rem)": "3" },
+		marginTop: { default: "0.75rem", "@media (min-width: 48rem)": "0.25rem" },
+		textAlign: { default: "start", "@media (min-width: 48rem)": "end" },
+	},
+
+	letter: {
+		position: "relative",
+		paddingTop: { default: "5rem", "@media (min-width: 48rem)": "8rem" },
+		paddingBottom: { default: "13rem", "@media (min-width: 48rem)": "20rem" },
+		textAlign: "center",
+	},
+	letterInner: { position: "relative", zIndex: 1, marginInline: "auto", maxWidth: "30rem" },
+	form: { marginTop: "2rem" },
+	field: {
+		display: "flex",
+		alignItems: "center",
+		borderBottomWidth: "1.5px",
+		borderBottomStyle: "solid",
+		borderBottomColor: ink.ink,
+	},
+	input: {
+		flex: 1,
+		minWidth: 0,
+		paddingBlock: "0.75rem",
+		backgroundColor: "transparent",
+		borderWidth: 0,
+		outline: "none",
+		color: ink.ink,
+		fontFamily: font.body,
+		fontSize: "1.125rem",
+		"::placeholder": { color: ink.soft, opacity: 0.8 },
+	},
+	button: {
+		...label,
+		...focus,
+		paddingBlock: "0.75rem",
+		paddingInlineStart: "1rem",
+		color: ink.ink,
+		cursor: "pointer",
+	},
+	status: { minHeight: "1.5rem", marginTop: "0.75rem", fontStyle: "italic", color: ink.ink },
+	srOnly: {
+		position: "absolute",
+		width: "1px",
+		height: "1px",
+		margin: "-1px",
+		overflow: "hidden",
+		clip: "rect(0, 0, 0, 0)",
+		whiteSpace: "nowrap",
+	},
+
+	colophon: {
+		position: "relative",
+		display: "grid",
+		gridTemplateColumns: { default: "1fr", "@media (min-width: 48rem)": "1fr auto" },
+		rowGap: "1.25rem",
+		alignItems: "end",
+		paddingBlock: "3rem 4.5rem",
+	},
+	pigments: { display: "flex", gap: "0.5rem", alignItems: "center" },
+	chip: { position: "relative", width: "2.75rem", height: "1.75rem" },
+	small: {
+		marginTop: "0.75rem",
+		maxWidth: "30rem",
+		color: ink.soft,
+		fontSize: "0.9375rem",
+		lineHeight: 1.5,
+	},
+});

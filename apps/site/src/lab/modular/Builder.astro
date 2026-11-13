@@ -1,0 +1,154 @@
+---
+import { sx } from "@/lib/sx";
+import { cellMarker, styles } from "./Builder.styles";
+import { CELLS, type Cell, position, SEED, WATER } from "./grid";
+import { CELL_OUTLINE, model, VIEW } from "./models";
+import { CELL_AREA, MODULES, moduleAt } from "./modules";
+import Shapes from "./Shapes.astro";
+
+/* The seed plan is server-rendered; `builder.client.ts` takes over from the URL hash. */
+const viewBox = `${VIEW.x} ${VIEW.y} ${VIEW.width} ${VIEW.height}`;
+const iconBox = "-1.05 -1.6 2.1 2.2";
+const place = (cell: Cell) => `--x:${cell.x.toFixed(4)};--y:${(cell.y / 2).toFixed(4)}`;
+const name = (cell: Cell, value: number) => {
+	const { column, row } = position(cell);
+	return `Column ${column}, row ${row}: ${moduleAt(value)?.label ?? "open water"}`;
+};
+const seeded = SEED.map(moduleAt).filter((m) => m !== undefined);
+const power = seeded.reduce((sum, m) => sum + m.power, 0);
+---
+
+<div data-builder {...sx(styles.builder)}>
+	<svg aria-hidden="true" {...sx(styles.defs)}>
+		<defs>
+			<radialGradient id="modular-halo">
+				<stop offset="0" stop-color="currentColor" stop-opacity="0.55"></stop>
+				<stop offset="1" stop-color="currentColor" stop-opacity="0"></stop>
+			</radialGradient>
+		</defs>
+	</svg>
+
+	<div {...sx(styles.stage)}>
+		<div role="group" aria-label="Seastead plan" data-sea {...sx(styles.sea)}>
+			{
+				WATER.map((cell) => (
+					<span
+						aria-hidden="true"
+						data-water
+						data-x={cell.x}
+						data-y={cell.y}
+						{...sx(styles.cell, styles.water)}
+						style={`${place(cell)};--fade:${cell.ring === 4 ? 0.6 : 0.25}`}
+					>
+						<span data-float {...sx(styles.float)}>
+							<svg viewBox={viewBox} {...sx(styles.art)}>
+								<path d={CELL_OUTLINE} {...sx(styles.swell)} />
+							</svg>
+						</span>
+					</span>
+				))
+			}
+			{
+				CELLS.map((cell, i) => {
+					const value = SEED[i] ?? 0;
+					const spec = moduleAt(value);
+					return (
+						<button
+							type="button"
+							data-cell={i}
+							data-full={spec ? "" : undefined}
+							tabindex={i === Math.floor(CELLS.length / 2) ? 0 : -1}
+							aria-label={name(cell, value)}
+							{...sx(cellMarker, styles.cell)}
+							style={`${place(cell)};z-index:${i + 1}`}
+						>
+							<span data-float {...sx(styles.float)}>
+								<svg viewBox={viewBox} aria-hidden="true" {...sx(styles.art)}>
+									<path d={CELL_OUTLINE} {...sx(styles.ring)} />
+									<path d="M-0.12 0h0.24M0 -0.06v0.12" {...sx(styles.plus)} />
+									<g data-art {...sx(styles.model)}>
+										{spec && <Shapes shapes={model(spec.id)} />}
+									</g>
+								</svg>
+							</span>
+						</button>
+					);
+				})
+			}
+		</div>
+	</div>
+
+	<div {...sx(styles.tools)}>
+		<fieldset {...sx(styles.fieldset)}>
+			<legend {...sx(styles.legend)}>Module</legend>
+			<div {...sx(styles.palette)}>
+				{
+					MODULES.map(({ id, label }, i) => (
+						<label {...sx(styles.tool)}>
+							<input type="radio" name="tool" value={i + 1} checked={i === 0} {...sx(styles.radio)} />
+							<span {...sx(styles.chip)}>
+								<svg viewBox={iconBox} aria-hidden="true" {...sx(styles.icon)}>
+									<Shapes shapes={model(id)} />
+								</svg>
+								{label}
+								<span aria-hidden="true" {...sx(styles.key, styles.keyHidden)}>{i + 1}</span>
+							</span>
+						</label>
+					))
+				}
+				<label {...sx(styles.tool)}>
+					<input type="radio" name="tool" value="0" {...sx(styles.radio)} />
+					<span {...sx(styles.chip)}>
+						<svg viewBox={iconBox} aria-hidden="true" {...sx(styles.icon)}>
+							<path d={CELL_OUTLINE} {...sx(styles.swell)} />
+						</svg>
+						Open water
+						<span aria-hidden="true" {...sx(styles.key, styles.keyHidden)}>0</span>
+					</span>
+				</label>
+			</div>
+		</fieldset>
+
+		<dl {...sx(styles.stats)}>
+			<div {...sx(styles.stat)}>
+				<dt {...sx(styles.term)}>Residents</dt>
+				<dd data-stat="residents" {...sx(styles.value)}>{seeded.reduce((sum, m) => sum + m.residents, 0)}</dd>
+			</div>
+			<div {...sx(styles.stat)}>
+				<dt data-stat="power-term" {...sx(styles.term)}>{power < 0 ? "Power short" : "Power spare"}</dt>
+				<dd {...sx(styles.value)}><span data-stat="power">{Math.abs(power)}</span><span {...sx(styles.unit)}>kW</span></dd>
+			</div>
+			<div {...sx(styles.stat)}>
+				<dt {...sx(styles.term)}>Footprint</dt>
+				<dd {...sx(styles.value)}><span data-stat="footprint">{(seeded.length * CELL_AREA).toLocaleString("en")}</span><span {...sx(styles.unit)}>m²</span></dd>
+			</div>
+		</dl>
+
+		<div {...sx(styles.actions)}>
+			<button type="button" data-action="undo" disabled {...sx(styles.action)}>Undo</button>
+			<button type="button" data-action="clear" {...sx(styles.action)}>Clear</button>
+			<button type="button" data-action="night" aria-pressed="false" {...sx(styles.action)}>Night</button>
+			<button type="button" data-action="share" {...sx(styles.action)}>Copy link</button>
+		</div>
+
+		<p {...sx(styles.hint)}>
+			Tap open water to float the chosen module. Tap a module to change it.{" "}
+			<span {...sx(styles.hintKeys)}>Arrow keys move across the plan, 0–{MODULES.length} choose, Delete clears a cell.</span>
+		</p>
+		<p role="status" data-live {...sx(styles.live)}></p>
+	</div>
+
+	{
+		MODULES.map(({ id }, i) => (
+			<template data-module={i + 1}>
+				<svg><g><Shapes shapes={model(id)} /></g></svg>
+			</template>
+		))
+	}
+</div>
+
+<script>
+	import { mount } from "./builder.client";
+
+	for (const root of document.querySelectorAll<HTMLElement>("[data-builder]")) mount(root);
+</script>

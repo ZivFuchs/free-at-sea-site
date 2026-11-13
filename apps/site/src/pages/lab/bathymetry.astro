@@ -1,0 +1,102 @@
+---
+import Clips from "@/components/clips/Clips.astro";
+import Footer from "@/components/footer/Footer.astro";
+import Header from "@/components/header/Header.astro";
+import Newsletter from "@/components/newsletter/Newsletter.astro";
+import Press from "@/components/press/Press.astro";
+import { styles } from "@/lab/bathymetry/Bathymetry.styles";
+import LogEntry from "@/lab/bathymetry/LogEntry.astro";
+import LabLayout from "@/lab/LabLayout.astro";
+import { getClips } from "@/lib/clips";
+import { getHome } from "@/lib/home";
+import { getPress } from "@/lib/press";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+
+const [site, home, clips, press] = await Promise.all([
+	getSite(),
+	getHome(),
+	getClips(),
+	getPress(),
+]);
+
+const readouts = [
+	{ key: "Depth", name: "depth", unit: "m" },
+	{ key: "Track", name: "track", unit: "km" },
+	{ key: "Hdg", name: "heading" },
+	{ key: "Lat", name: "lat", wide: true },
+	{ key: "Lon", name: "lon", wide: true },
+];
+---
+
+<LabLayout slug="bathymetry">
+	<div data-survey {...sx(styles.root)}>
+		<canvas aria-hidden="true" {...sx(styles.canvas)}></canvas>
+		<div aria-hidden="true" {...sx(styles.vignette)}></div>
+		<Header overlay />
+
+		<main id="main" {...sx(styles.main)}>
+			<section aria-label="Intro" {...sx(styles.hero)}>
+				<p data-hero-fade {...sx(styles.eyebrow)}>Survey line FAS-01 · South Pacific</p>
+				<h1 data-hero-title data-hero-fade {...sx(styles.title)}>{site.title}</h1>
+				<p data-hero-fade {...sx(styles.tagline)}>{site.tagline}</p>
+				<p aria-hidden="true" {...sx(styles.cue)}>Scroll to run the line ↓</p>
+			</section>
+
+			<LogEntry station={46} number="01" feature="abyssal plain" heading="Unmapped" figure="≈ 26%" caption="of the seabed surveyed directly by sonar">
+				We hold finer maps of the surface of Mars than of the floor of our own ocean. Around a quarter of the seabed
+				has been sounded by ships. The rest is inferred from orbit, blurred into shapes kilometres wide.
+			</LogEntry>
+
+			<LogEntry station={104} number="02" feature="ridge crest" heading="Unclaimed" figure="200 nm" caption="from the coast, where every nation's waters end">
+				Two hundred nautical miles out, national waters stop. What lies beyond is the high seas: nearly two thirds
+				of the ocean and close to half the surface of the planet. No country owns it.
+			</LogEntry>
+
+			<LogEntry station={152} number="03" feature="outer rise" heading="Unsettled" figure="0" caption="permanent settlements on the high seas, so far">
+				Seasteading asks one question of that open water: could people live there? Not aboard ships passing
+				through, but in settlements that float and stay. {site.title} follows the people trying to find out.
+			</LogEntry>
+
+			<div data-station="190" {...sx(styles.band)}><Clips clips={clips} /></div>
+			<div aria-hidden="true" data-station="233" {...sx(styles.gap)}></div>
+			<div data-station="262" {...sx(styles.band)}><Press items={press} /></div>
+			<div aria-hidden="true" data-station="284" {...sx(styles.gap)}></div>
+			<Newsletter home={home} />
+		</main>
+
+		<div {...sx(styles.footer)}><Footer /></div>
+
+		<aside aria-hidden="true" {...sx(styles.hud)}>
+			<div {...sx(styles.profile)}>
+				<svg viewBox="0 0 100 100" preserveAspectRatio="none" {...sx(styles.profileSvg)}>
+					<path data-profile-floor {...sx(styles.profileFloor)}></path>
+					<path data-profile {...sx(styles.profileLine)}></path>
+				</svg>
+				<span {...sx(styles.marker)}></span>
+			</div>
+			<dl {...sx(styles.readouts)}>
+				{
+					readouts.map(({ key, name, unit, wide }) => (
+						<div {...sx(styles.readout, wide && styles.wide)}>
+							<dt {...sx(styles.key)}>{key}</dt>
+							<dd {...sx(styles.value)}>
+								<span data-readout={name}>—</span>
+								{unit && <span {...sx(styles.unit)}> {unit}</span>}
+							</dd>
+						</div>
+					))
+				}
+			</dl>
+		</aside>
+	</div>
+</LabLayout>
+
+<script>
+	import { survey } from "@/lab/bathymetry/scene";
+
+	const root = document.querySelector<HTMLElement>("[data-survey]");
+	if (root) survey(root);
+	// The site header picks ink text for a light hero photo; this hero is always dark.
+	document.querySelector<HTMLElement>("[data-site-header]")?.style.removeProperty("--top");
+</script>

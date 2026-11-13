@@ -1,0 +1,191 @@
+---
+import { rootMarker, styles } from "@/lab/ink/Ink.styles";
+import Sheet from "@/lab/ink/Sheet.astro";
+import { type Pigment, print, SEASCAPE, swatch, type Wash } from "@/lab/ink/washes";
+import LabLayout from "@/lab/LabLayout.astro";
+import { getClips } from "@/lib/clips";
+import { NAV } from "@/lib/nav";
+import { newsletterForm } from "@/lib/newsletter";
+import { getPress } from "@/lib/press";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+
+const [site, clips, press] = await Promise.all([getSite(), getClips(), getPress()]);
+
+const pad = (n: number) => String(n).padStart(2, "0");
+const PALETTE: readonly Pigment[] = ["prussian", "viridian", "indigo", "sand"];
+const pigment = (i: number): Pigment => PALETTE[i % PALETTE.length] ?? "prussian";
+const nav = NAV.map(({ label, href }) => ({ label, href: href.replace("/", "") }));
+
+const PREMISE: readonly Wash[] = [
+	{
+		kind: "blob",
+		pigment: "sand",
+		mix: "viridian",
+		rect: [0.02, 0.04, 0.5, 0.5],
+		strength: 0.2,
+		duration: 2.2,
+		angle: 20,
+	},
+	{
+		kind: "blob",
+		pigment: "viridian",
+		mix: "prussian",
+		rect: [0.5, 0.5, 0.46, 0.46],
+		strength: 0.2,
+		delay: 0.9,
+		duration: 2,
+		angle: 200,
+	},
+];
+const LETTER: readonly Wash[] = [
+	{ kind: "glow", pigment: "sand", rect: [0.1, 0.3, 0.8, 0.4], strength: 0.4, duration: 1.6 },
+	{
+		kind: "sea",
+		pigment: "prussian",
+		mix: "viridian",
+		rect: [0.04, 0.7, 0.92, 0.26],
+		strength: 0.5,
+		delay: 1,
+		duration: 1.8,
+		angle: 180,
+	},
+];
+---
+
+<LabLayout slug="ink" tone="light">
+	<div data-ink {...sx(rootMarker, styles.root)}>
+		<header {...sx(styles.header)}>
+			<a href="#top" {...sx(styles.wordmark)}>{site.title}</a>
+			<nav aria-label="Main" {...sx(styles.nav)}>
+				{nav.map(({ label, href }) => <a href={href} {...sx(styles.navLink)}>{label}</a>)}
+			</nav>
+		</header>
+
+		<main id="top">
+			<section aria-label="Intro" {...sx(styles.hero)}>
+				<div aria-hidden="true" {...sx(styles.flat)}></div>
+				<Sheet washes={SEASCAPE} place={styles.painting} />
+				<div {...sx(styles.copy)}>
+					<p {...sx(styles.tagline)}>{site.tagline}</p>
+					<h1 {...sx(styles.title)}>{site.title}</h1>
+				</div>
+				<p {...sx(styles.plate)}>
+					<span {...sx(styles.label)}>Plate I · The barge, open sea</span>
+				</p>
+			</section>
+
+			<section aria-labelledby="premise" {...sx(styles.section)}>
+				<div {...sx(styles.container)}>
+					<div {...sx(styles.premise)}>
+						<Sheet washes={PREMISE} place={styles.premiseWash} />
+						<p {...sx(styles.label)}>The premise</p>
+						<h2 id="premise" {...sx(styles.lede)}>Past the last line on the chart, the water belongs to no one.</h2>
+						<p {...sx(styles.body)}>
+							Seasteading is the attempt to build permanent homes on the open ocean, beyond the reach of any coast.
+							This film follows the people trying it.
+						</p>
+					</div>
+				</div>
+			</section>
+
+			{
+				clips.length > 0 && (
+					<section id="clips" aria-labelledby="clips-heading" {...sx(styles.section)}>
+						<div {...sx(styles.container)}>
+							<p {...sx(styles.label)}>Studies from the film</p>
+							<h2 id="clips-heading" {...sx(styles.heading)}>Clips</h2>
+							<ul {...sx(styles.prints)}>
+								{clips.map(({ title, caption, url, thumbnail }, i) => (
+									<li {...sx(i % 2 === 1 && styles.printLow)}>
+										<a href={url} target="_blank" rel="noopener" {...sx(rootMarker, styles.print)}>
+											<div {...sx(styles.frame)}>
+												{thumbnail && <Sheet washes={print(pigment(i), i % 2 ? 180 : 0)} photo={thumbnail} place={styles.photoSheet} />}
+												{thumbnail && <img src={thumbnail} alt="" loading="lazy" hidden data-wash-fallback {...sx(styles.fallback)} />}
+											</div>
+											<div {...sx(styles.caption)}>
+												<span {...sx(styles.label)}>No. {pad(i + 1)}</span>
+												<span {...sx(styles.printTitle)}>{title}</span>
+												<span {...sx(styles.label)}>Play</span>
+												{caption && <p {...sx(styles.printNote)}>{caption}</p>}
+											</div>
+										</a>
+									</li>
+								))}
+							</ul>
+						</div>
+					</section>
+				)
+			}
+
+			{
+				press.length > 0 && (
+					<section id="press" aria-labelledby="press-heading" {...sx(styles.section)}>
+						<div {...sx(styles.container)}>
+							<p {...sx(styles.label)}>What they wrote</p>
+							<h2 id="press-heading" {...sx(styles.heading)}>Press</h2>
+							<ul {...sx(styles.press)}>
+								{press.map(({ headline, url, outlet, quote, date, dateLabel }, i) => (
+									<li>
+										<a href={url} target="_blank" rel="noopener" {...sx(rootMarker, styles.item)}>
+											<span {...sx(styles.swatch)}>
+												<Sheet washes={swatch(pigment(i + 1), pigment(i + 2))} />
+											</span>
+											<span>
+												<span {...sx(styles.label)}>{outlet}</span>
+												<h3 {...sx(styles.headline)}>{headline}</h3>
+												{quote && <p {...sx(styles.quote)}>“{quote}”</p>}
+											</span>
+											{date && <time datetime={date} {...sx(styles.date)}>{dateLabel}</time>}
+										</a>
+									</li>
+								))}
+							</ul>
+						</div>
+					</section>
+				)
+			}
+
+			<section id="newsletter" aria-labelledby="newsletter-heading" {...sx(styles.letter)}>
+				<Sheet washes={LETTER} />
+				<div {...sx(styles.container)}>
+					<div {...sx(styles.letterInner)}>
+						<p {...sx(styles.label)}>Join the newsletter</p>
+						<h2 id="newsletter-heading" {...sx(styles.heading)}>Word from the water</h2>
+						<form {...newsletterForm()} {...sx(styles.form)}>
+							<div {...sx(styles.field)}>
+								<label for="ink-email" {...sx(styles.srOnly)}>Email address</label>
+								<input id="ink-email" type="email" name="email" autocomplete="email" placeholder="you@example.com" required {...sx(styles.input)} />
+								<button type="submit" {...sx(styles.button)}>Subscribe</button>
+							</div>
+							<p data-newsletter-status aria-live="polite" {...sx(styles.status)}></p>
+						</form>
+					</div>
+				</div>
+			</section>
+		</main>
+
+		<footer {...sx(styles.container)}>
+			<div {...sx(styles.colophon)}>
+				<div>
+					<p {...sx(styles.wordmark)}>{site.title}</p>
+					<p {...sx(styles.small)}>
+						Painted in Prussian blue, indigo, viridian and raw sienna on cold-pressed paper. No two visits dry the same.
+					</p>
+					<p {...sx(styles.small, styles.label)}>© {new Date().getFullYear()} {site.title}</p>
+				</div>
+				<div aria-hidden="true" {...sx(styles.pigments)}>
+					{PALETTE.map((p) => <span {...sx(styles.chip)}><Sheet washes={swatch(p)} /></span>)}
+				</div>
+			</div>
+		</footer>
+	</div>
+</LabLayout>
+
+<script>
+	import "@/lib/newsletter.client";
+	import { paint } from "@/lab/ink/wash";
+
+	const root = document.querySelector<HTMLElement>("[data-ink]");
+	if (root) paint(root);
+</script>

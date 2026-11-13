@@ -28,6 +28,7 @@
 		"astro": "^7.3.1",
 		"react": "^19.2.8",
 		"react-dom": "^19.2.8",
+		"three": "^0.187.0",
 		"uqr": "^0.1.3"
 	},
 	"devDependencies": {
@@ -36,6 +37,7 @@
 		"@astryxdesign/cli": "0.7.11",
 		"@stylexjs/babel-plugin": "0.19.1",
 		"@stylexjs/unplugin": "0.19.1",
+		"@types/three": "^0.187.0",
 		"wrangler": "4.129.0"
 	}
 }

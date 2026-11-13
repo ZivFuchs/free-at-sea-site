@@ -1,0 +1,169 @@
+---
+import { Image } from "astro:assets";
+import barge from "@/assets/hero/barge-from-afar.jpg";
+import Clips from "@/components/clips/Clips.astro";
+import Footer from "@/components/footer/Footer.astro";
+import Newsletter from "@/components/newsletter/Newsletter.astro";
+import Press from "@/components/press/Press.astro";
+import LabLayout from "@/lab/LabLayout.astro";
+import { SENSOR } from "@/lab/scan/reconstruct";
+import { rootMarker, styles } from "@/lab/scan/Scan.styles";
+import { getClips } from "@/lib/clips";
+import { getHome } from "@/lib/home";
+import { getPress } from "@/lib/press";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+
+const [site, home, clips, press] = await Promise.all([
+	getSite(),
+	getHome(),
+	getClips(),
+	getPress(),
+]);
+
+const NAV = [
+	{ label: "Clips", href: "#clips" },
+	{ label: "Press", href: "#press" },
+	{ label: "Newsletter", href: "#newsletter" },
+];
+const TAGS = [
+	{ id: "sensor", key: "Sensor", text: `${SENSOR.height} m` },
+	{ id: "length", key: "L", value: "length" },
+	{ id: "beam", key: "B", value: "beam" },
+	{ id: "height", key: "H", value: "height" },
+];
+const STAGES = [
+	{
+		name: "Footprint",
+		heading: "One photograph, cast back onto the sea",
+		body: `Every pixel of a single aerial frame, sent back down its own line of sight until it meets the water. The camera hung ${SENSOR.height} metres up; this wedge is everything it saw.`,
+	},
+	{
+		name: "Vessel",
+		heading: "A steel deck, at anchor in open water",
+		body: "Workshops and quarters in blue containers, a tender standing off the stern. Nothing else for miles. This is where the film begins.",
+	},
+	{
+		name: "Section",
+		heading: "Cut through, bow to stern",
+		body: "A plane sweeps the length of the hull. Colour is height above the water: waterline, deck, container roofs.",
+	},
+	{ name: "Measure", heading: "Measured from the cloud", body: null },
+	{
+		name: "Range",
+		heading: "Coloured by distance from the lens",
+		body: "Each band is 250 metres of open water, out to the haze three kilometres off. One vessel, one tender, and no coast inside the frame.",
+	},
+	{
+		name: "Water",
+		heading: "Then it is only water again",
+		body: "Seasteading is the attempt to stay out here for good: permanent homes on the high seas, beyond any nation's shore.",
+	},
+];
+const pad = (n: number) => String(n).padStart(2, "0");
+---
+
+<LabLayout slug="scan">
+	<div data-scan data-src={barge.src} {...sx(rootMarker, styles.root)}>
+		<canvas aria-hidden="true" {...sx(styles.canvas)}></canvas>
+		<Image
+			src={barge}
+			alt=""
+			widths={[768, 1280, 1920]}
+			sizes="100vw"
+			loading="lazy"
+			{...sx(styles.fallback)}
+		/>
+		<div aria-hidden="true" {...sx(styles.overlay)}>
+			{
+				TAGS.map(({ id, key, text, value }) => (
+					<div data-label={id} {...sx(styles.tag)}>
+						<span {...sx(styles.tagBody)}>
+							<span {...sx(styles.tagKey)}>{key}</span>
+							<span data-value={value}>{text}</span>
+						</span>
+					</div>
+				))
+			}
+		</div>
+
+		<header {...sx(styles.header)}>
+			<a href="#top" {...sx(styles.wordmark)}>{site.title}</a>
+			<nav aria-label="Main" {...sx(styles.nav)}>
+				{NAV.map(({ label, href }) => <a href={href} {...sx(styles.navLink)}>{label}</a>)}
+			</nav>
+		</header>
+
+		<main id="top">
+			<div data-track {...sx(styles.track)}>
+				<section data-stage aria-label="Intro" {...sx(styles.stage, styles.heroStage)}>
+					<div {...sx(styles.copy)}>
+						<p {...sx(styles.eyebrow)}>Survey 01 · Point cloud</p>
+						<h1 {...sx(styles.title)}>{site.title}</h1>
+						<p {...sx(styles.tagline)}>{site.tagline}</p>
+						<p {...sx(styles.hint)}>Scroll to survey · Drag to orbit</p>
+					</div>
+				</section>
+				{
+					STAGES.map(({ name, heading, body }, i) => (
+						<section data-stage aria-labelledby={`scan-${i}`} {...sx(styles.stage)}>
+							<div {...sx(styles.copy)}>
+								<p {...sx(styles.eyebrow)}>
+									<span {...sx(styles.count)}>
+										{pad(i + 1)} / {pad(STAGES.length)}
+									</span>
+									{name}
+								</p>
+								<h2 id={`scan-${i}`} {...sx(styles.heading)}>{heading}</h2>
+								{body && <p {...sx(styles.body)}>{body}</p>}
+								{name === "Measure" && (
+									<>
+										<dl {...sx(styles.specs)}>
+											{["length", "beam", "height"].map((spec) => (
+												<div>
+													<dt {...sx(styles.specKey)}>{spec}</dt>
+													<dd data-value={spec} {...sx(styles.specValue)}>—</dd>
+												</div>
+											))}
+										</dl>
+										<p {...sx(styles.note)}>
+											Derived from the photograph alone, assuming a {SENSOR.height} m camera height. Indicative, not surveyed.
+										</p>
+									</>
+								)}
+							</div>
+						</section>
+					))
+				}
+			</div>
+
+			<div {...sx(styles.rest)}>
+				<Clips clips={clips} />
+				<Press items={press} />
+				<Newsletter home={home} />
+			</div>
+		</main>
+		<div {...sx(styles.rest)}><Footer /></div>
+
+		<aside aria-label="Point cloud display" {...sx(styles.hud)}>
+			<span {...sx(styles.hudCount)}><span data-value="points">0</span> pts</span>
+			<div role="group" aria-label="Colour points by" {...sx(styles.modes)}>
+				{
+					["photo", "range", "height"].map((mode) => (
+						<button type="button" data-mode={mode} aria-pressed="false" {...sx(styles.mode)}>{mode}</button>
+					))
+				}
+			</div>
+		</aside>
+	</div>
+</LabLayout>
+
+<script>
+	const root = document.querySelector<HTMLElement>("[data-scan]");
+	if (root) {
+		import("@/lab/scan/scene")
+			.then(({ start }) => start(root, root.dataset.src ?? ""))
+			.catch(() => false)
+			.then((ok) => root.toggleAttribute("data-fallback", !ok));
+	}
+</script>

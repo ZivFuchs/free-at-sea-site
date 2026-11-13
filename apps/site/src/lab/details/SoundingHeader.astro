@@ -1,0 +1,124 @@
+---
+import { styles as header } from "@/components/header/Header.styles";
+import { getHome } from "@/lib/home";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+import { markMarker, styles } from "./SoundingHeader.styles";
+import { SECTIONS } from "./sections";
+
+/* A slim instrument: wordmark, a depth reading tied to scroll, and a ruler whose marks are the nav. */
+const site = await getSite();
+const darkTop = (await getHome()).heroBackdrop === "light";
+const last = SECTIONS.length - 1;
+---
+
+<header
+	data-experiment="header"
+	data-variant="sounding"
+	hidden
+	{...sx(header.header, styles.overlay)}
+	style={`--solid: 0; --flip: 0;${darkTop ? " --top: var(--app-ink);" : ""}`}
+>
+	<div {...sx(layout.container)}>
+		<div {...sx(styles.bar)}>
+			<a href="#d-surface" {...sx(styles.wordmark)}>{site.title}</a>
+			<p {...sx(styles.readout)}>
+				<span data-place {...sx(styles.place)}>{SECTIONS[0].label}</span>
+				<span><span data-depth {...sx(styles.depth)}>0</span> <span {...sx(styles.unit)}>m</span></span>
+			</p>
+		</div>
+		<nav aria-label="Main" {...sx(styles.ruler)}>
+			<div aria-hidden="true" {...sx(styles.scale)}></div>
+			<ol {...sx(styles.marks)}>
+				{SECTIONS.map(({ id, label }, i) => (
+					<li>
+						<a
+							href={`#${id}`}
+							data-mark={id}
+							{...sx(markMarker, styles.mark)}
+							data-edge={i === 0 ? "start" : i === last ? "end" : undefined}
+							style={{ "--at": i / last }}
+						>
+							<span {...sx(styles.tick)}></span>
+							{label}
+						</a>
+					</li>
+				))}
+			</ol>
+			<div aria-hidden="true" {...sx(styles.needle)}></div>
+		</nav>
+	</div>
+</header>
+
+<script>
+	import { clamp, lerp, pageProgress } from "@/lab/lib/motion";
+	import { headerScroll } from "./headerScroll";
+	import { currentSection, sectionAt, sectionEls } from "./scroll";
+	import { variant } from "./variant";
+
+	/** The bottom of the page reads as the ocean's mean depth. */
+	const FLOOR_M = 3688;
+	const metres = new Intl.NumberFormat("en-GB");
+	/** Closest two marks may sit before the ruler gives up on scale. */
+	const MIN_GAP_PX = 104;
+
+	variant("header", "sounding", {
+		on: (header) => {
+			const els = sectionEls();
+			const marks = [...header.querySelectorAll<HTMLAnchorElement>("[data-mark]")];
+			const place = header.querySelector<HTMLElement>("[data-place]");
+			const depth = header.querySelector<HTMLElement>("[data-depth]");
+
+			/** True start of each section along the scroll, and where its mark sits on the ruler. */
+			let starts: number[] = [];
+			let spots: number[] = [];
+
+			const lay = () => {
+				const ruler = marks[0]?.offsetParent;
+				const width = ruler instanceof HTMLElement ? ruler.clientWidth : 0;
+				starts = marks.map((mark) => {
+					const el = els.find((s) => s.id === mark.dataset.mark);
+					return el ? sectionAt(el) : 0;
+				});
+				// To scale when the labels have room; evenly spaced when two sections start too close together.
+				const cramped = starts.some((at, i) => i > 0 && (at - (starts[i - 1] ?? 0)) * width < MIN_GAP_PX);
+				spots = cramped ? starts.map((_, i) => i / Math.max(1, starts.length - 1)) : starts;
+				for (const [i, mark] of marks.entries()) {
+					const at = spots[i] ?? 0;
+					mark.style.setProperty("--at", String(at));
+					if (at < 0.12) mark.dataset.edge = "start";
+					else if (at > 0.8) mark.dataset.edge = "end";
+					else delete mark.dataset.edge;
+				}
+			};
+			/** The needle moves mark to mark as the page moves section to section. */
+			const needle = (progress: number) => {
+				const next = starts.findIndex((at) => at > progress);
+				const i = next < 0 ? starts.length - 1 : Math.max(0, next - 1);
+				const [from, to] = [starts[i] ?? 0, starts[i + 1] ?? 1];
+				const [a, b] = [spots[i] ?? 0, spots[i + 1] ?? 1];
+				return lerp(a, b, to > from ? clamp((progress - from) / (to - from)) : 0);
+			};
+			lay();
+			const resize = new ResizeObserver(lay);
+			resize.observe(document.body);
+
+			const stop = headerScroll(header, () => {
+				const here = currentSection(els);
+				const progress = pageProgress();
+				for (const mark of marks) {
+					if (mark.dataset.mark === here?.id) mark.setAttribute("aria-current", "location");
+					else mark.removeAttribute("aria-current");
+				}
+				if (place && here) place.textContent = here.dataset.section ?? "";
+				if (depth) depth.textContent = metres.format(Math.round(progress * FLOOR_M));
+				header.style.setProperty("--needle", String(needle(progress)));
+			});
+			return () => {
+				stop();
+				resize.disconnect();
+			};
+		},
+	});
+</script>

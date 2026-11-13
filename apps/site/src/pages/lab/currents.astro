@@ -1,0 +1,101 @@
+---
+import Clips from "@/components/clips/Clips.astro";
+import Footer from "@/components/footer/Footer.astro";
+import Newsletter from "@/components/newsletter/Newsletter.astro";
+import Press from "@/components/press/Press.astro";
+import { styles } from "@/lab/currents/Currents.styles";
+import { LABELS, OPEN_WATER, PASSAGES, type View, WORLD } from "@/lab/currents/content";
+import LabLayout from "@/lab/LabLayout.astro";
+import { getClips } from "@/lib/clips";
+import { getHome } from "@/lib/home";
+import { NAV } from "@/lib/nav";
+import { getPress } from "@/lib/press";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+
+const [site, home, clips, press] = await Promise.all([
+	getSite(),
+	getHome(),
+	getClips(),
+	getPress(),
+]);
+
+function stop({ lon, lat, spanX, spanY, portrait = 1 }: View) {
+	return {
+		"data-stop": "",
+		"data-lon": lon,
+		"data-lat": lat,
+		"data-span-x": spanX,
+		"data-span-y": spanY,
+		"data-portrait": portrait,
+	};
+}
+---
+
+<LabLayout slug="currents">
+	<div {...sx(styles.root)}>
+		<div aria-hidden="true" data-currents {...sx(styles.map)}>
+			<canvas data-land {...sx(styles.canvas)}></canvas>
+			<canvas data-flow {...sx(styles.canvas)}></canvas>
+			{
+				LABELS.map(({ text, lon, lat, stops, kind, wide }) => (
+					<span data-label data-lon={lon} data-lat={lat} data-stops={stops.join(",")} {...sx(styles.label, styles[kind], wide && styles.labelWide)}>
+						{kind === "site" && <span {...sx(styles.pin)} />}
+						{text}
+					</span>
+				))
+			}
+		</div>
+
+		<header {...sx(styles.header)}>
+			<nav aria-label="Main" {...sx(layout.container, styles.bar)}>
+				<a href="/lab/currents" {...sx(styles.wordmark)}>{site.title}</a>
+				<ul {...sx(styles.nav)}>
+					{NAV.map(({ label, href }) => (
+						<li><a href={href.replace(/^\//, "")} {...sx(styles.navLink)}>{label}</a></li>
+					))}
+				</ul>
+			</nav>
+		</header>
+
+		<main>
+			<section aria-label="Intro" {...stop(WORLD)} {...sx(layout.container, styles.hero)}>
+				<div {...sx(styles.heroCopy)}>
+					<h1 {...sx(styles.title)}>{site.title}</h1>
+					<p {...sx(styles.tagline)}>{site.tagline}</p>
+				</div>
+				<div {...sx(styles.legend)}>
+					<p {...sx(styles.scale)}>Slow <span {...sx(styles.ramp)}></span> Fast</p>
+					<p {...sx(styles.caveat)}>Surface currents · an illustrative model, not live data</p>
+				</div>
+			</section>
+
+			{
+				PASSAGES.map(({ view, kicker, heading, body }, i) => (
+					<section {...stop(view)} {...sx(layout.container, styles.passage, i % 2 === 1 && styles.passageRight)}>
+						<div data-card {...sx(styles.card)}>
+							<p {...sx(styles.kicker)}>{kicker}</p>
+							<h2 {...sx(styles.heading)}>{heading}</h2>
+							<p {...sx(styles.body)}>{body}</p>
+						</div>
+					</section>
+				))
+			}
+
+			<div {...stop(OPEN_WATER)} {...sx(styles.rest)}>
+				<Clips clips={clips} />
+				<Press items={press} />
+				<Newsletter home={home} />
+			</div>
+		</main>
+		<Footer />
+	</div>
+</LabLayout>
+
+<script>
+	import { runCurrents } from "@/lab/currents/flow";
+
+	const root = document.querySelector<HTMLElement>("[data-currents]");
+	if (root) runCurrents(root);
+</script>

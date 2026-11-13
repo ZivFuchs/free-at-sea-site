@@ -1,0 +1,42 @@
+---
+import Footer from "@/components/footer/Footer.astro";
+import Newsletter from "@/components/newsletter/Newsletter.astro";
+import Press from "@/components/press/Press.astro";
+import LabLayout from "@/lab/LabLayout.astro";
+import { styles } from "@/lab/sail/Sail.styles";
+import Stage from "@/lab/sail/Stage.astro";
+import { getClips } from "@/lib/clips";
+import { getHome } from "@/lib/home";
+import { getPress } from "@/lib/press";
+import { getSite } from "@/lib/site";
+import { sx } from "@/lib/sx";
+
+const [site, home, clips, press] = await Promise.all([
+	getSite(),
+	getHome(),
+	getClips(),
+	getPress(),
+]);
+const nav = [
+	{ label: "Clips", href: "#clips" },
+	{ label: "Press", href: "#press" },
+	{ label: "Newsletter", href: "#newsletter" },
+];
+---
+
+<LabLayout slug="sail">
+	<header {...sx(styles.header)}>
+		<a href="/lab/sail" {...sx(styles.wordmark)}>{site.title}</a>
+		<nav aria-label="Main" {...sx(styles.nav)}>
+			{nav.map(({ label, href }) => <a href={href} {...sx(styles.navLink)}>{label}</a>)}
+		</nav>
+	</header>
+	<main>
+		<Stage site={site} home={home} clips={clips} />
+		<div {...sx(styles.rest)}>
+			<Press items={press} />
+			<Newsletter home={home} />
+		</div>
+	</main>
+	<Footer />
+</LabLayout>
