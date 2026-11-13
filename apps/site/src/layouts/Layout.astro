@@ -1,7 +1,7 @@
 ---
 import { Font } from "astro:assets";
 import { NOINDEX } from "astro:env/server";
-import FooterShowcase from "@/components/footer/experiments/FooterShowcase.astro";
+import Footer from "@/components/footer/Footer.astro";
 import Header from "@/components/header/Header.astro";
 import { getSite } from "@/lib/site";
 import { sx } from "@/lib/sx";
@@ -64,6 +64,6 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
 				)
 			}
 		</main>
-		<FooterShowcase />
+		<Footer />
 	</body>
 </html>

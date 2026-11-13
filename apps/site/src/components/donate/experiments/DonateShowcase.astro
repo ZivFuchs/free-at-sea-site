@@ -1,0 +1,20 @@
+---
+/* Donation section layouts, compared in place: the `donate` group of the experiments panel. */
+import Experiment from "@/components/experiments/Experiment.astro";
+import type { Donations } from "@/lib/donations";
+import { DONATE_VARIANTS } from "./variants";
+
+interface Props {
+	donations: Donations;
+}
+
+const { donations } = Astro.props;
+---
+
+{
+	DONATE_VARIANTS.map(({ id, Component }, i) => (
+		<Experiment group="donate" id={id} active={i === 0}>
+			<Component donations={donations} />
+		</Experiment>
+	))
+}

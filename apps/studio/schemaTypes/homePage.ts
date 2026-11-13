@@ -24,6 +24,14 @@ export const homePage = defineType({
 			readOnly: true,
 		}),
 		defineField({ name: "heroPosterFor", type: "string", hidden: true, readOnly: true }),
+		defineField({
+			name: "newsletterImage",
+			title: "Newsletter background",
+			type: "image",
+			description:
+				"Wide photo behind the newsletter sign-up, shown darkened under the card. Set the hotspot to keep the subject in frame. Empty: the barge still",
+			options: { hotspot: true },
+		}),
 	],
 	preview: { prepare: () => ({ title: "Homepage" }) },
 });

@@ -1,0 +1,52 @@
+---
+import type { PressItem } from "@/lib/press";
+import { sx } from "@/lib/sx";
+import { styles } from "./PressCard.styles";
+
+/** Poster card: full-bleed cover, logo top left, headline over a scrim that deepens as the image zooms on hover. */
+interface Props {
+	item: PressItem;
+	/** Above the fold on load: load its image eagerly. */
+	eager: boolean;
+}
+
+const { item, eager } = Astro.props;
+const { headline, url, outlet, kind, dateLabel, logo, thumbnail } = item;
+const meta = [kind, dateLabel].filter(Boolean).join(" · ");
+/** Squarish logos are badges (e.g. a filled box): keep their colours, since whitening would blank them. */
+const badge = logo !== null && logo.aspect < 1.5;
+/** Sized by area, easing off for wide wordmarks so thin ones (e.g. blackletter) stay legible. */
+const logoHeight = (aspect: number) =>
+	`${Math.min(Math.max(1.5 * (5 / aspect) ** 0.35, 1.1), 2.75)}rem`;
+---
+
+<a href={url} target="_blank" rel="noopener" aria-label={`${headline}, ${outlet} (opens in a new tab)`} {...sx(styles.link)}>
+	{
+		thumbnail && (
+			<img
+				src={thumbnail.src}
+				srcset={thumbnail.srcset || undefined}
+				sizes="(min-width: 48rem) 19rem, 80vw"
+				alt=""
+				loading={eager ? "eager" : "lazy"}
+				decoding="async"
+				{...sx(styles.image)}
+			/>
+		)
+	}
+	<span {...sx(styles.scrim)}></span>
+	<span {...sx(styles.scrim, styles.scrimDeep)}></span>
+	<span {...sx(styles.masthead)}>
+		{
+			logo ? (
+				<img src={logo.src} alt="" {...sx(styles.logo, badge && styles.badge)} style={{ aspectRatio: logo.aspect, height: logoHeight(logo.aspect) }} />
+			) : (
+				<span {...sx(styles.outlet)}>{outlet}</span>
+			)
+		}
+	</span>
+	<span {...sx(styles.body)}>
+		<span {...sx(styles.headline)}>{headline}</span>
+		{meta ? <span {...sx(styles.meta)}>{meta}</span> : null}
+	</span>
+</a>

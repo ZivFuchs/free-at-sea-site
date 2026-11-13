@@ -30,7 +30,10 @@ export default defineConfig({
 			weights: [900],
 		},
 	],
-	integrations: [react(), sitemap()],
+	integrations: [
+		react(),
+		sitemap({ filter: (page) => !new URL(page).pathname.startsWith("/lab") }),
+	],
 	vite: {
 		plugins: [...stylex()],
 		resolve: {

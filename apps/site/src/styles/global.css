@@ -3,8 +3,14 @@
 @import "../theme/built/free-at-sea.css";
 
 @layer reset {
+	/* The canvas matches the page, and no rubber-band bounce reveals it past the hero or footer. */
 	html {
 		color-scheme: light;
+		background-color: var(--color-background-body);
+		overscroll-behavior-y: none;
+		/* Section links (/#press) glide to their section and land below the sticky header. */
+		scroll-padding-top: 4.5rem;
+		scroll-behavior: smooth;
 	}
 
 	body {

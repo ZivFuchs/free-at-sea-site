@@ -5,6 +5,8 @@ export const color = stylex.defineConsts({
 	ink: "var(--app-ink)",
 	muted: "var(--app-muted)",
 	accent: "var(--app-accent)",
+	/** Page background: open water. */
+	ocean: "var(--app-ocean)",
 	ink10: "color-mix(in oklab, var(--app-ink) 10%, transparent)",
 	paper12: "color-mix(in oklab, var(--app-paper) 12%, transparent)",
 	paper15: "color-mix(in oklab, var(--app-paper) 15%, transparent)",
@@ -13,8 +15,8 @@ export const color = stylex.defineConsts({
 	paper65: "color-mix(in oklab, var(--app-paper) 65%, transparent)",
 	paper70: "color-mix(in oklab, var(--app-paper) 70%, transparent)",
 	paper85: "color-mix(in oklab, var(--app-paper) 85%, transparent)",
-	/** Deep navy glass: the scrolled header. */
-	abyss90: "oklch(0.2 0.045 245 / 0.9)",
+	/** The page blue as glass: the scrolled header. */
+	abyss90: "color-mix(in oklab, var(--app-ocean) 90%, transparent)",
 	/** Pale aqua highlight on abyss. */
 	aqua: "oklch(0.8 0.08 215)",
 });

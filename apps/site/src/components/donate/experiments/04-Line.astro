@@ -1,0 +1,220 @@
+---
+import { donationView } from "@/lib/donations";
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+import { styles } from "./04-Line.styles";
+import type { DonateVariantProps } from "./props";
+
+export const variant = {
+	id: "line",
+	label: "Line",
+	note: "Minimal and centred: one big sentence of amounts and frequency, crypto in dialogs.",
+};
+
+type Props = DonateVariantProps;
+const { donations } = Astro.props;
+const { heading, blurb, note, amounts, custom, wallets, other, sample } = donations;
+
+const { hasOneTime, hasMonthly, hasCard, hasCustom, start, chosen, cta } = donationView(donations);
+---
+
+<section aria-labelledby="donate-line-heading" data-donate data-donate-line {...sx(styles.section)}>
+	<div {...sx(layout.container, styles.inner)}>
+		<div {...sx(styles.head)}>
+			<h2 id="donate-line-heading" {...sx(styles.heading)}>{heading}</h2>
+			{blurb && <p {...sx(styles.blurb)}>{blurb}</p>}
+		</div>
+
+		{
+			hasCard && (
+				<>
+					<div {...sx(styles.line)}>
+						<span aria-hidden="true" {...sx(styles.give)}>
+							Give
+						</span>
+						<span role="group" aria-label="Amount" {...sx(styles.amounts)}>
+							{amounts.map((a) => (
+								<button
+									type="button"
+									data-amount={a.label}
+									data-one-time={a.oneTime ?? ""}
+									data-monthly={a.monthly ?? ""}
+									aria-pressed={a === chosen ? "true" : "false"}
+									hidden={!a[start]}
+									{...sx(styles.amount)}
+								>
+									{a.label}
+								</button>
+							))}
+							{hasCustom && (
+								<button
+									type="button"
+									data-amount=""
+									data-one-time={custom.oneTime ?? ""}
+									data-monthly={custom.monthly ?? ""}
+									aria-pressed={chosen ? "false" : "true"}
+									hidden={!custom[start]}
+									{...sx(styles.amount)}
+								>
+									Other
+								</button>
+							)}
+						</span>
+						{hasOneTime && hasMonthly && (
+							<span role="group" aria-label="Frequency" {...sx(styles.frequency)}>
+								<span aria-hidden="true" {...sx(styles.dot)}>
+									·
+								</span>
+								<button type="button" data-frequency="oneTime" aria-pressed="true" {...sx(styles.freq)}>
+									once
+								</button>
+								<span aria-hidden="true" {...sx(styles.slash)}>
+									/
+								</span>
+								<button type="button" data-frequency="monthly" aria-pressed="false" {...sx(styles.freq)}>
+									monthly
+								</button>
+							</span>
+						)}
+					</div>
+
+					<div {...sx(styles.checkout)}>
+						<a href={cta.href} target="_blank" rel="noopener" data-cta {...sx(styles.cta)}>
+							<span data-cta-label>{cta.label}</span>
+							<span data-cta-suffix hidden={start !== "monthly"} {...sx(styles.ctaSuffix)}>
+								/ month
+							</span>
+							<svg viewBox="0 0 16 16" aria-hidden="true" {...sx(styles.arrow)}>
+								<path d="M2 8h11M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" />
+							</svg>
+						</a>
+						<p {...sx(styles.fine)}>Secure checkout by Stripe. Cards, Apple Pay and Google Pay.</p>
+					</div>
+				</>
+			)
+		}
+
+		{
+			wallets.length > 0 && (
+				<p {...sx(styles.row)}>
+					<span {...sx(styles.rowLabel)}>{hasCard ? "or send crypto:" : "Send crypto:"}</span>
+					{wallets.map((w, i) => (
+						<>
+							{i > 0 && (
+								<span aria-hidden="true" {...sx(styles.sep)}>
+									·
+								</span>
+							)}
+							<button type="button" data-open-wallet={i} aria-haspopup="dialog" {...sx(styles.quiet)}>
+								{w.label}
+							</button>
+						</>
+					))}
+				</p>
+			)
+		}
+
+		{
+			other.length > 0 && (
+				<p {...sx(styles.row)}>
+					<span {...sx(styles.rowLabel)}>{hasCard || wallets.length > 0 ? "or" : "Give via"}</span>
+					{other.map(({ label, url }, i) => (
+						<>
+							{i > 0 && (
+								<span aria-hidden="true" {...sx(styles.sep)}>
+									·
+								</span>
+							)}
+							<a href={url} target="_blank" rel="noopener" {...sx(styles.quiet)}>
+								{label}
+								<svg viewBox="0 0 16 16" aria-hidden="true" {...sx(styles.ext)}>
+									<path d="M5 3h8v8M13 3 3 13" fill="none" stroke="currentColor" stroke-width="1.5" />
+								</svg>
+							</a>
+						</>
+					))}
+				</p>
+			)
+		}
+
+		{note && <p {...sx(styles.note)}>{note}</p>}
+		{sample && <p {...sx(styles.sample)}>Sample content: fill in Studio → Donations.</p>}
+	</div>
+
+	{
+		wallets.length > 0 && (
+			<dialog aria-labelledby="donate-line-dialog-title" closedby="any" {...sx(styles.dialog)}>
+				<div {...sx(styles.sheet)}>
+					<div {...sx(styles.dialogHead)}>
+						<h3 id="donate-line-dialog-title" {...sx(styles.dialogTitle)}>
+							Send crypto
+						</h3>
+						<form method="dialog">
+							<button type="submit" aria-label="Close" {...sx(styles.close)}>
+								<svg viewBox="0 0 16 16" aria-hidden="true" {...sx(styles.closeIcon)}>
+									<path d="M3 3l10 10M13 3 3 13" fill="none" stroke="currentColor" stroke-width="1.5" />
+								</svg>
+							</button>
+						</form>
+					</div>
+					{wallets.length > 1 && (
+						<div role="group" aria-label="Currency" {...sx(styles.coins)}>
+							{wallets.map((w, i) => (
+								<button type="button" data-wallet={i} aria-pressed={i === 0 ? "true" : "false"} {...sx(styles.coin)}>
+									{w.label}
+								</button>
+							))}
+						</div>
+					)}
+					{wallets.map((w, i) => (
+						<div data-wallet-pane={i} hidden={i !== 0} {...sx(styles.pane)}>
+							<div aria-hidden="true" set:html={w.qr} {...sx(styles.qr)} />
+							<p {...sx(styles.warning)}>
+								Send only {w.symbol ?? w.label} on {w.network}
+							</p>
+							<code {...sx(styles.address)}>{w.address}</code>
+							{w.memo && (
+								<p {...sx(styles.memo)}>
+									Memo / tag: <code>{w.memo}</code>
+								</p>
+							)}
+							<div {...sx(styles.actions)}>
+								<button
+									type="button"
+									data-copy={w.address}
+									aria-label={`Copy ${w.label} address`}
+									{...sx(styles.action, styles.actionPrimary)}
+								>
+									<span data-copy-label>Copy address</span>
+								</button>
+								{w.uri && (
+									<a href={w.uri} {...sx(styles.action)}>
+										Open in wallet
+									</a>
+								)}
+							</div>
+						</div>
+					))}
+				</div>
+			</dialog>
+		)
+	}
+</section>
+
+<script>
+	import "@/lib/donate.client";
+
+	for (const root of document.querySelectorAll<HTMLElement>("[data-donate-line]")) {
+		const dialog = root.querySelector("dialog");
+		if (!dialog) continue;
+		for (const opener of root.querySelectorAll<HTMLButtonElement>("[data-open-wallet]")) {
+			opener.addEventListener("click", () => {
+				root.querySelector<HTMLButtonElement>(`[data-wallet="${opener.dataset.openWallet}"]`)?.click();
+				dialog.showModal();
+			});
+		}
+		dialog.addEventListener("click", (event) => {
+			if (event.target === dialog) dialog.close();
+		});
+	}
+</script>

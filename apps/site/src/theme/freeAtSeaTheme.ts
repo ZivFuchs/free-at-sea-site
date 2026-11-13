@@ -7,6 +7,9 @@ const PAPER = "oklch(0.985 0.003 230)";
 const INK = "oklch(0.2 0.03 240)";
 const MUTED = "oklch(0.48 0.02 240)";
 const ACCENT = "oklch(0.45 0.09 230)";
+/** Page background: open water. */
+const OCEAN = "oklch(0.2 0.045 245)";
+const MIST = "oklch(0.85 0.025 230)";
 
 export const freeAtSeaTheme = defineTheme({
 	name: "free-at-sea",
@@ -21,16 +24,17 @@ export const freeAtSeaTheme = defineTheme({
 	tokens: {
 		"--color-accent": ACCENT,
 		"--color-on-accent": PAPER,
-		"--color-background-body": PAPER,
-		"--color-text-primary": INK,
-		"--color-text-secondary": MUTED,
-		"--focus-outline-color": ACCENT,
+		"--color-background-body": OCEAN,
+		"--color-text-primary": PAPER,
+		"--color-text-secondary": MIST,
+		"--focus-outline-color": PAPER,
 	},
 	localTokens: {
 		"--app-paper": PAPER,
 		"--app-ink": INK,
 		"--app-muted": MUTED,
 		"--app-accent": ACCENT,
+		"--app-ocean": OCEAN,
 		"--app-font-sans": SANS,
 		"--app-font-display": "var(--font-anton), Impact, sans-serif",
 	},

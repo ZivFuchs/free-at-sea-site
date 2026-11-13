@@ -47,7 +47,6 @@ const button = {
 export const styles = stylex.create({
 	section: {
 		paddingBlock: { default: "4rem", "@media (min-width: 48rem)": "7rem" },
-		backgroundColor: color.paper,
 	},
 	heading: {
 		marginBottom: { default: "1.25rem", "@media (min-width: 48rem)": "2rem" },

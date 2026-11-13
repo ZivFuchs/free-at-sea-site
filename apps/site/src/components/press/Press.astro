@@ -1,0 +1,89 @@
+---
+import type { PressItem } from "@/lib/press";
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+import { cardMarker, styles } from "./Press.styles";
+import PressCard from "./PressCard.astro";
+
+/** Press coverage as a swipeable rack of cards, most important first; the arrows wrap around. */
+interface Props {
+	items: PressItem[];
+}
+
+const { items } = Astro.props;
+---
+
+{items.length > 0 && (
+
+<section id="press" aria-label="Press" data-shelf {...sx(styles.section)}>
+	<div {...sx(layout.container)}>
+		<div {...sx(styles.head)}>
+			<h2 {...sx(styles.heading)}>Press</h2>
+			<div data-controls {...sx(styles.controls)}>
+				<button type="button" data-step="-1" aria-label="Scroll press back" {...sx(styles.step)}>
+					<svg viewBox="0 0 16 16" aria-hidden="true" {...sx(styles.arrow)}>
+						<path d="M15 8H2M7 3L2 8l5 5" fill="none" stroke="currentColor" stroke-width="1.25" />
+					</svg>
+				</button>
+				<button type="button" data-step="1" aria-label="Scroll press forward" {...sx(styles.step)}>
+					<svg viewBox="0 0 16 16" aria-hidden="true" {...sx(styles.arrow)}>
+						<path d="M1 8h13M9 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.25" />
+					</svg>
+				</button>
+			</div>
+		</div>
+
+		<div {...sx(styles.rack)}>
+			<ul data-track {...sx(styles.track)}>
+				{
+					items.map((item, i) => (
+						<li {...sx(cardMarker, styles.card)}>
+							<PressCard item={item} eager={i < 2} />
+						</li>
+					))
+				}
+			</ul>
+			<span data-fade="start" aria-hidden="true" {...sx(styles.fade, styles.fadeStart)}></span>
+			<span data-fade="end" aria-hidden="true" {...sx(styles.fade, styles.fadeEnd)}></span>
+		</div>
+	</div>
+</section>
+)}
+
+<script>
+	for (const root of document.querySelectorAll<HTMLElement>("[data-shelf]")) {
+		const track = root.querySelector<HTMLElement>("[data-track]");
+		const controls = root.querySelector<HTMLElement>("[data-controls]");
+		if (!track || !controls) continue;
+		const [back, forward] = controls.querySelectorAll<HTMLButtonElement>("[data-step]");
+		const [fadeStart, fadeEnd] = root.querySelectorAll<HTMLElement>("[data-fade]");
+		const reduced = matchMedia("(prefers-reduced-motion: reduce)");
+
+		const max = () => track.scrollWidth - track.clientWidth;
+		const sync = () => {
+			const before = track.scrollLeft > 2;
+			const after = track.scrollLeft < max() - 2;
+			controls.toggleAttribute("data-on", max() > 2);
+			fadeStart?.toggleAttribute("data-on", before);
+			fadeEnd?.toggleAttribute("data-on", after);
+		};
+
+		for (const button of [back, forward]) {
+			button?.addEventListener("click", () => {
+				const card = track.querySelector("li");
+				const gap = Number.parseFloat(getComputedStyle(track).columnGap) || 0;
+				const unit = (card?.offsetWidth ?? 0) + gap;
+				const page = Math.max(1, Math.floor(track.clientWidth / unit)) * unit;
+				const step = Number(button.dataset.step);
+				const behavior = reduced.matches ? "auto" : "smooth";
+				// Wrap around: forward from the end returns to the start, back from the start goes to the end.
+				if (step > 0 && track.scrollLeft >= max() - 2) track.scrollTo({ left: 0, behavior });
+				else if (step < 0 && track.scrollLeft <= 2) track.scrollTo({ left: max(), behavior });
+				else track.scrollBy({ left: step * page, behavior });
+			});
+		}
+
+		track.addEventListener("scroll", sync, { passive: true });
+		new ResizeObserver(sync).observe(track);
+	}
+</script>

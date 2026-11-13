@@ -1,42 +1,35 @@
 ---
-import type { StyleXStyles } from "@stylexjs/stylex";
+import { styles as header } from "@/components/header/Header.styles";
 import { NAV } from "@/lib/nav";
 import { getSite } from "@/lib/site";
 import { sx } from "@/lib/sx";
 import { layout } from "@/styles/layout";
-import { text } from "@/styles/text";
 import { styles } from "./Footer.styles";
 
-/* `backdrop` fills the footer behind the content: the seabed. */
-interface Props {
-	xstyle?: StyleXStyles;
-}
-
-const { xstyle } = Astro.props;
+/* Mirrors the header: wordmark centred, links either side. */
 const site = await getSite();
-const link = sx(text.sm, text.navLink, styles.link);
+const links = [...NAV, ...(site.email ? [{ label: "Contact", href: `mailto:${site.email}` }] : [])];
+const split = Math.floor(links.length / 2);
+const sides = [
+	{ items: links.slice(0, split), side: styles.left },
+	{ items: links.slice(split), side: styles.right },
+];
 ---
 
-<footer {...sx(styles.footer, xstyle)}>
-	<div aria-hidden="true" {...sx(styles.backdrop)}>
-		<slot name="backdrop" />
-	</div>
-
-	<div {...sx(layout.container, styles.body)}>
-		<div>
-			<a href="/" {...sx(text.xl2, text.wordmark)}>{site.title}</a>
-			<p {...sx(styles.tagline)}>{site.tagline}</p>
-		</div>
-
-		<nav aria-label="Footer">
-			<ul {...sx(styles.list)}>
-				{NAV.map(({ label, href }) => <li><a href={href} {...link}>{label}</a></li>)}
-				{site.email && <li><a href={`mailto:${site.email}`} {...link}>Contact</a></li>}
-			</ul>
+<footer {...sx(styles.footer)}>
+	<div {...sx(styles.bar)}>
+		<nav aria-label="Footer" {...sx(layout.container, styles.row)}>
+			{sides.map(({ items, side }, i) => (
+				<Fragment>
+					{i === 1 && <a href="/" {...sx(header.wordmark, styles.wordmark)}>{site.title}</a>}
+					<ul {...sx(styles.side, side)}>
+						{items.map(({ label, href }) => (
+							<li><a href={href} {...sx(header.link)}>{label}</a></li>
+						))}
+					</ul>
+				</Fragment>
+			))}
 		</nav>
-	</div>
-
-	<div {...sx(layout.container, styles.legal, text.xs)}>
-		© {new Date().getFullYear()} {site.title}
+		<p {...sx(layout.container, styles.legal)}>© {new Date().getFullYear()} {site.title}</p>
 	</div>
 </footer>

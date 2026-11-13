@@ -57,8 +57,9 @@ Three workspace packages:
 - **`packages/content`** (`@fas/content`) — the boundary between the two. GROQ queries, TypeGen output, and the `@sanity/client` factory.
 
 Content fetching uses `@sanity/client` at build time. Site-wide copy lives in the `siteSettings` singleton, read via
-`getSite()` (`apps/site/src/lib/site.ts`); homepage content in the `homePage` singleton via `getHome()`;
-navigation stays in code.
+`getSite()` (`apps/site/src/lib/site.ts`); homepage content in the `homePage` singleton via `getHome()`; donation
+options (Stripe Payment Links, crypto wallets) in the `donations` singleton via `getDonations()`; navigation stays in code.
+Site-wide fetches go through `buildOnce()` (`src/lib/once.ts`): shared across a build, refetched per request in dev.
 
 ### React islands
 

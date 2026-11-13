@@ -22,7 +22,11 @@ const serverOnly = (plugin, hooks) =>
 export const stylex = () =>
 	astryxStylex({
 		rootDir: here("."),
-		stylexOverrides: { aliases: { "@/*": [here("src/*")] } },
+		stylexOverrides: {
+			aliases: { "@/*": [here("src/*")] },
+			/* Every page links global.css. Without this, StyleX picks the first CSS asset, which another imported .css can become. */
+			cssInjectionTarget: (file) => /(^|\/)global\.[^/]+\.css$/.test(file),
+		},
 	}).map((plugin) =>
 		WRITERS.has(plugin.name)
 			? { ...plugin, ...serverOnly(plugin, ["generateBundle", "writeBundle"]) }

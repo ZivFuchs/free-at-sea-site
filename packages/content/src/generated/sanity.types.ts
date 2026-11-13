@@ -22,6 +22,53 @@ export type SanityImageAssetReference = {
   [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
 };
 
+export type Press = {
+  _id: string;
+  _type: "press";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  headline: string;
+  url: string;
+  outlet: string;
+  logo?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    _type: "image";
+  };
+  thumbnail?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    alt?: string;
+    _type: "image";
+  };
+  publishedAt?: string;
+  kind?: "Review" | "Feature" | "Interview" | "News" | "Podcast" | "Broadcast";
+  author?: string;
+  quote?: string;
+  importance?: number;
+};
+
+export type SanityImageCrop = {
+  _type: "sanity.imageCrop";
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+};
+
+export type SanityImageHotspot = {
+  _type: "sanity.imageHotspot";
+  x: number;
+  y: number;
+  height: number;
+  width: number;
+};
+
 export type Clip = {
   _id: string;
   _type: "clip";
@@ -41,20 +88,50 @@ export type Clip = {
   order?: number;
 };
 
-export type SanityImageCrop = {
-  _type: "sanity.imageCrop";
-  top: number;
-  bottom: number;
-  left: number;
-  right: number;
-};
-
-export type SanityImageHotspot = {
-  _type: "sanity.imageHotspot";
-  x: number;
-  y: number;
-  height: number;
-  width: number;
+export type Donations = {
+  _id: string;
+  _type: "donations";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  heading?: string;
+  blurb?: string;
+  note?: string;
+  currency?: string;
+  amounts?: Array<{
+    value: number;
+    oneTime?: string;
+    monthly?: string;
+    suggested?: boolean;
+    _type: "amount";
+    _key: string;
+  }>;
+  customOneTime?: string;
+  customMonthly?: string;
+  wallets?: Array<{
+    label: string;
+    symbol?: string;
+    chain:
+      | "bitcoin"
+      | "lightning"
+      | "ethereum"
+      | "solana"
+      | "litecoin"
+      | "dogecoin"
+      | "monero"
+      | "other";
+    network?: string;
+    address: string;
+    memo?: string;
+    _type: "wallet";
+    _key: string;
+  }>;
+  other?: Array<{
+    label: string;
+    url: string;
+    _type: "method";
+    _key: string;
+  }>;
 };
 
 export type SanityFileAssetReference = {
@@ -83,6 +160,13 @@ export type HomePage = {
     _type: "image";
   };
   heroPosterFor?: string;
+  newsletterImage?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    _type: "image";
+  };
 };
 
 export type SiteSettings = {
@@ -202,9 +286,11 @@ export type Slug = {
 
 export type AllSanitySchemaTypes =
   | SanityImageAssetReference
-  | Clip
+  | Press
   | SanityImageCrop
   | SanityImageHotspot
+  | Clip
+  | Donations
   | SanityFileAssetReference
   | HomePage
   | SiteSettings
@@ -230,7 +316,7 @@ export type SITE_SETTINGS_QUERY_RESULT = {
 
 // Source: ../../packages/content/src/queries.ts
 // Variable: HOME_PAGE_QUERY
-// Query: *[_type == "homePage" && _id == "homePage"][0]{	"heroVideo": heroVideo.asset->url,	heroPoster}
+// Query: *[_type == "homePage" && _id == "homePage"][0]{	"heroVideo": heroVideo.asset->url,	heroPoster,	newsletterImage}
 export type HOME_PAGE_QUERY_RESULT = {
   heroVideo: string | null;
   heroPoster: {
@@ -240,6 +326,51 @@ export type HOME_PAGE_QUERY_RESULT = {
     crop?: SanityImageCrop;
     _type: "image";
   } | null;
+  newsletterImage: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    _type: "image";
+  } | null;
+} | null;
+
+// Source: ../../packages/content/src/queries.ts
+// Variable: DONATIONS_QUERY
+// Query: *[_type == "donations" && _id == "donations"][0]{	heading, blurb, note, currency, amounts[]{ value, oneTime, monthly, suggested },	customOneTime, customMonthly, wallets[]{ label, symbol, chain, network, address, memo },	other[]{ label, url }}
+export type DONATIONS_QUERY_RESULT = {
+  heading: string | null;
+  blurb: string | null;
+  note: string | null;
+  currency: string | null;
+  amounts: Array<{
+    value: number;
+    oneTime: string | null;
+    monthly: string | null;
+    suggested: boolean | null;
+  }> | null;
+  customOneTime: string | null;
+  customMonthly: string | null;
+  wallets: Array<{
+    label: string;
+    symbol: string | null;
+    chain:
+      | "bitcoin"
+      | "dogecoin"
+      | "ethereum"
+      | "lightning"
+      | "litecoin"
+      | "monero"
+      | "other"
+      | "solana";
+    network: string | null;
+    address: string;
+    memo: string | null;
+  }> | null;
+  other: Array<{
+    label: string;
+    url: string;
+  }> | null;
 } | null;
 
 // Source: ../../packages/content/src/queries.ts
@@ -259,12 +390,47 @@ export type CLIPS_QUERY_RESULT = Array<{
   } | null;
 }>;
 
+// Source: ../../packages/content/src/queries.ts
+// Variable: PRESS_QUERY
+// Query: *[_type == "press" && defined(url) && defined(outlet)] | order(coalesce(importance, 0) desc, publishedAt desc){	_id, headline, url, outlet, author, kind, quote, publishedAt,	"logo": logo.asset->{ url, "aspect": metadata.dimensions.aspectRatio },	thumbnail}
+export type PRESS_QUERY_RESULT = Array<{
+  _id: string;
+  headline: string;
+  url: string;
+  outlet: string;
+  author: string | null;
+  kind:
+    | "Broadcast"
+    | "Feature"
+    | "Interview"
+    | "News"
+    | "Podcast"
+    | "Review"
+    | null;
+  quote: string | null;
+  publishedAt: string | null;
+  logo: {
+    url: string;
+    aspect: number | null;
+  } | null;
+  thumbnail: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    alt?: string;
+    _type: "image";
+  } | null;
+}>;
+
 // Query TypeMap
 declare global {
   interface SanityQueries {
     '*[_type == "siteSettings" && _id == "siteSettings"][0]{\n\ttitle, tagline, description, email\n}': SITE_SETTINGS_QUERY_RESULT;
-    '*[_type == "homePage" && _id == "homePage"][0]{\n\t"heroVideo": heroVideo.asset->url,\n\theroPoster\n}': HOME_PAGE_QUERY_RESULT;
+    '*[_type == "homePage" && _id == "homePage"][0]{\n\t"heroVideo": heroVideo.asset->url,\n\theroPoster,\n\tnewsletterImage\n}': HOME_PAGE_QUERY_RESULT;
+    '*[_type == "donations" && _id == "donations"][0]{\n\theading, blurb, note, currency, amounts[]{ value, oneTime, monthly, suggested },\n\tcustomOneTime, customMonthly, wallets[]{ label, symbol, chain, network, address, memo },\n\tother[]{ label, url }\n}': DONATIONS_QUERY_RESULT;
     '*[_type == "clip" && defined(url)] | order(order asc, _createdAt desc){\n\t_id, title, url, caption, thumbnail\n}': CLIPS_QUERY_RESULT;
+    '*[_type == "press" && defined(url) && defined(outlet)] | order(coalesce(importance, 0) desc, publishedAt desc){\n\t_id, headline, url, outlet, author, kind, quote, publishedAt,\n\t"logo": logo.asset->{ url, "aspect": metadata.dimensions.aspectRatio },\n\tthumbnail\n}': PRESS_QUERY_RESULT;
   }
 }
 // Lets @sanity/client releases that predate the global registry read it too

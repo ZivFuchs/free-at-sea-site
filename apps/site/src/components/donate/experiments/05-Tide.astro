@@ -1,0 +1,219 @@
+---
+import { donationView } from "@/lib/donations";
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+import { styles } from "./05-Tide.styles";
+import type { DonateVariantProps } from "./props";
+
+export const variant = {
+	id: "tide",
+	label: "Tide",
+	note: "Full-bleed band with drifting light and waves; a bright donation card floats centre stage.",
+};
+
+type Props = DonateVariantProps;
+const { donations } = Astro.props;
+const { heading, blurb, note, amounts, custom, wallets, other, sample } = donations;
+
+const { hasOneTime, hasMonthly, hasCard, hasCustom, start, chosen, tabs, cta } =
+	donationView(donations);
+const otherWide = amounts.length % 2 === 0;
+const WAVE = "M0 0H200V10Q187.5 18 175 10T150 10T125 10T100 10T75 10T50 10T25 10T0 10Z";
+---
+
+<section aria-labelledby="donate-tide-heading" data-donate {...sx(styles.section)}>
+	<div aria-hidden="true" {...sx(styles.sea)}>
+		<div {...sx(styles.causticA)}></div>
+		<div {...sx(styles.causticB)}></div>
+		<svg viewBox="0 0 200 20" preserveAspectRatio="none" {...sx(styles.waveBack)}>
+			<path d={WAVE}></path>
+		</svg>
+		<svg viewBox="0 0 200 20" preserveAspectRatio="none" {...sx(styles.waveFront)}>
+			<path d={WAVE}></path>
+		</svg>
+	</div>
+
+	<div {...sx(layout.container, styles.inner)}>
+		<div {...sx(styles.head)}>
+			<h2 id="donate-tide-heading" {...sx(styles.heading)}>{heading}</h2>
+			{blurb && <p {...sx(styles.blurb)}>{blurb}</p>}
+		</div>
+
+		<div {...sx(styles.card)}>
+			{
+				tabs.length > 1 && (
+					<div role="tablist" aria-label="How to give" {...sx(styles.tabs)}>
+						{tabs.map(({ id, label }, i) => (
+							<button
+								type="button"
+								role="tab"
+								id={`donate-tide-tab-${id}`}
+								aria-controls={`donate-tide-panel-${id}`}
+								aria-selected={i === 0 ? "true" : "false"}
+								tabindex={i === 0 ? 0 : -1}
+								data-tab={id}
+								{...sx(styles.tab)}
+							>
+								{label}
+							</button>
+						))}
+					</div>
+				)
+			}
+
+			{
+				hasCard && (
+					<div
+						id="donate-tide-panel-card"
+						role={tabs.length > 1 ? "tabpanel" : undefined}
+						aria-labelledby={tabs.length > 1 ? "donate-tide-tab-card" : undefined}
+						data-panel="card"
+						{...sx(styles.pane)}
+					>
+						{hasOneTime && hasMonthly && (
+							<div role="group" aria-label="Frequency" {...sx(styles.segmented)}>
+								<button type="button" data-frequency="oneTime" aria-pressed="true" {...sx(styles.segment)}>
+									One-time
+								</button>
+								<button type="button" data-frequency="monthly" aria-pressed="false" {...sx(styles.segment)}>
+									Monthly
+								</button>
+							</div>
+						)}
+						<div role="group" aria-label="Amount" {...sx(styles.amounts)}>
+							{amounts.map((a) => (
+								<button
+									type="button"
+									data-amount={a.label}
+									data-one-time={a.oneTime ?? ""}
+									data-monthly={a.monthly ?? ""}
+									aria-pressed={a === chosen ? "true" : "false"}
+									hidden={!a[start]}
+									{...sx(styles.amount)}
+								>
+									{a.label}
+								</button>
+							))}
+							{hasCustom && (
+								<button
+									type="button"
+									data-amount=""
+									data-one-time={custom.oneTime ?? ""}
+									data-monthly={custom.monthly ?? ""}
+									aria-pressed={chosen ? "false" : "true"}
+									hidden={!custom[start]}
+									{...sx(styles.amount, otherWide && styles.wide)}
+								>
+									Other amount
+								</button>
+							)}
+						</div>
+						<a href={cta.href} target="_blank" rel="noopener" data-cta {...sx(styles.cta)}>
+							<span data-cta-label>{cta.label}</span>
+							<span data-cta-suffix hidden={start !== "monthly"} {...sx(styles.ctaSuffix)}>
+								/ month
+							</span>
+							<svg viewBox="0 0 16 16" aria-hidden="true" {...sx(styles.arrow)}>
+								<path d="M2 8h11M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" />
+							</svg>
+						</a>
+						<p {...sx(styles.fine)}>Secure checkout by Stripe. Cards, Apple Pay and Google Pay.</p>
+					</div>
+				)
+			}
+
+			{
+				wallets.length > 0 && (
+					<div
+						id="donate-tide-panel-crypto"
+						role={tabs.length > 1 ? "tabpanel" : undefined}
+						aria-labelledby={tabs.length > 1 ? "donate-tide-tab-crypto" : undefined}
+						data-panel="crypto"
+						hidden={tabs[0]?.id !== "crypto"}
+						{...sx(styles.pane)}
+					>
+						{wallets.length > 1 && (
+							<div role="group" aria-label="Currency" {...sx(styles.coins)}>
+								{wallets.map((w, i) => (
+									<button type="button" data-wallet={i} aria-pressed={i === 0 ? "true" : "false"} {...sx(styles.coin)}>
+										{w.label}
+									</button>
+								))}
+							</div>
+						)}
+						{wallets.map((w, i) => (
+							<div data-wallet-pane={i} hidden={i !== 0} {...sx(styles.wallet)}>
+								<div aria-hidden="true" set:html={w.qr} {...sx(styles.qr)} />
+								<div {...sx(styles.walletBody)}>
+									<p {...sx(styles.warning)}>
+										Send only {w.symbol ?? w.label} on {w.network}
+									</p>
+									<code {...sx(styles.address)}>{w.address}</code>
+									{w.memo && (
+										<p {...sx(styles.memo)}>
+											Memo / tag: <code>{w.memo}</code>
+										</p>
+									)}
+									<div {...sx(styles.actions)}>
+										<button
+											type="button"
+											data-copy={w.address}
+											aria-label={`Copy ${w.label} address`}
+											{...sx(styles.action, styles.actionPrimary)}
+										>
+											<span data-copy-label>Copy address</span>
+										</button>
+										{w.uri && (
+											<a href={w.uri} {...sx(styles.action)}>
+												Open in wallet
+											</a>
+										)}
+									</div>
+								</div>
+							</div>
+						))}
+					</div>
+				)
+			}
+
+			{
+				other.length > 0 && (
+					<div
+						id="donate-tide-panel-other"
+						role={tabs.length > 1 ? "tabpanel" : undefined}
+						aria-labelledby={tabs.length > 1 ? "donate-tide-tab-other" : undefined}
+						data-panel="other"
+						hidden={tabs[0]?.id !== "other"}
+						{...sx(styles.pane)}
+					>
+						<ul {...sx(styles.otherList)}>
+							{other.map(({ label, url }) => (
+								<li>
+									<a href={url} target="_blank" rel="noopener" {...sx(styles.otherLink)}>
+										{label}
+										<svg viewBox="0 0 16 16" aria-hidden="true" {...sx(styles.arrow)}>
+											<path d="M2 8h11M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" />
+										</svg>
+									</a>
+								</li>
+							))}
+						</ul>
+					</div>
+				)
+			}
+		</div>
+
+		{
+			(note || sample) && (
+				<div {...sx(styles.after)}>
+					{note && <p {...sx(styles.note)}>{note}</p>}
+					{sample && <p {...sx(styles.sample)}>Sample content: fill in Studio → Donations.</p>}
+				</div>
+			)
+		}
+	</div>
+</section>
+
+<script>
+	import "@/lib/donate.client";
+</script>

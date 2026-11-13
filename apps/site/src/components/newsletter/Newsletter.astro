@@ -1,0 +1,72 @@
+---
+import { Image } from "astro:assets";
+import barge from "@/assets/hero/barge-from-afar.jpg";
+import type { Home } from "@/lib/home";
+import { newsletterForm } from "@/lib/newsletter";
+import { sx } from "@/lib/sx";
+import { layout } from "@/styles/layout";
+import { formMarker, styles } from "./Newsletter.styles";
+
+/** Newsletter sign-up: a frosted card over a sea photo (Studio → Homepage → Newsletter background, else the barge still). */
+interface Props {
+	home: Home;
+}
+
+const { home } = Astro.props;
+const photo = home.newsletterImage;
+---
+
+<section id="newsletter" aria-labelledby="newsletter-heading" {...sx(styles.section)}>
+	{
+		photo ? (
+			<img
+				src={photo.src}
+				srcset={photo.srcset}
+				sizes="100vw"
+				alt=""
+				loading="lazy"
+				decoding="async"
+				{...sx(styles.media)}
+				style={{ objectPosition: photo.position }}
+			/>
+		) : (
+			<Image src={barge} alt="" widths={[768, 1280, 1920, 2880]} sizes="100vw" loading="lazy" {...sx(styles.media)} />
+		)
+	}
+	<div aria-hidden="true" {...sx(styles.veil)}></div>
+	<div {...sx(layout.container)}>
+		<div {...sx(styles.card)}>
+			<h2 id="newsletter-heading" {...sx(styles.heading)}>Word from the water</h2>
+			<p {...sx(styles.sub)}>Join the newsletter</p>
+			<form {...newsletterForm()} {...sx(formMarker, styles.form)}>
+				<div {...sx(styles.field)}>
+					<label for="newsletter-email" {...sx(styles.srOnly)}>Email address</label>
+					<input
+						id="newsletter-email"
+						type="email"
+						name="email"
+						autocomplete="email"
+						placeholder="you@example.com"
+						required
+						{...sx(styles.input)}
+					/>
+					<button type="submit" aria-label="Subscribe" {...sx(styles.button)}>
+						<svg viewBox="0 0 16 16" aria-hidden="true" {...sx(styles.arrow)}>
+							<path d="M2 8h11M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" />
+						</svg>
+					</button>
+				</div>
+				<div {...sx(styles.statusRow)}>
+					<svg viewBox="0 0 16 16" aria-hidden="true" {...sx(styles.check)}>
+						<path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="1.75" />
+					</svg>
+					<p data-newsletter-status aria-live="polite" {...sx(styles.status)}></p>
+				</div>
+			</form>
+		</div>
+	</div>
+</section>
+
+<script>
+	import "@/lib/newsletter.client";
+</script>

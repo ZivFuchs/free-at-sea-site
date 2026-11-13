@@ -1,19 +1,40 @@
 ---
 import { EXPERIMENTS } from "astro:env/server";
 import Clips from "@/components/clips/Clips.astro";
+import DonateShowcase from "@/components/donate/experiments/DonateShowcase.astro";
+import { donateExperiment } from "@/components/donate/experiments/variants";
 import ExperimentsPanel from "@/components/experiments/ExperimentsPanel.astro";
-import { footerExperiment } from "@/components/footer/experiments/variants";
 import Waterline from "@/components/hero/Waterline.astro";
+import Newsletter from "@/components/newsletter/Newsletter.astro";
+import Press from "@/components/press/Press.astro";
 import Layout from "@/layouts/Layout.astro";
 import { getClips } from "@/lib/clips";
+import { getDonations, sampleDonations } from "@/lib/donations";
 import { getHome } from "@/lib/home";
+import { SHOW_NEWSLETTER } from "@/lib/newsletter";
+import { getPress } from "@/lib/press";
 import { getSite } from "@/lib/site";
 
-const [site, home, clips] = await Promise.all([getSite(), getHome(), getClips()]);
+const [site, home, clips, press, saved] = await Promise.all([
+	getSite(),
+	getHome(),
+	getClips(),
+	getPress(),
+	getDonations(),
+]);
+/** Donations are parked: flip on to show the section (and its layout experiment) again. */
+const SHOW_DONATE = false;
+/** Dev and staging preview labelled samples until Studio → Donations is filled in; production shows nothing. */
+const donations = SHOW_DONATE
+	? (saved ?? (EXPERIMENTS || import.meta.env.DEV ? sampleDonations() : null))
+	: null;
 ---
 
 <Layout>
 	<Waterline slot="hero" site={site} home={home} />
 	<Clips slot="sections" clips={clips} />
-	{(EXPERIMENTS || import.meta.env.DEV) && <ExperimentsPanel slot="sections" groups={[footerExperiment]} />}
+	<Press slot="sections" items={press} />
+	{SHOW_NEWSLETTER && <Newsletter slot="sections" home={home} />}
+	{donations && <DonateShowcase slot="sections" donations={donations} />}
+	{(EXPERIMENTS || import.meta.env.DEV) && donations && <ExperimentsPanel slot="sections" groups={[donateExperiment]} />}
 </Layout>
