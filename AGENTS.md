@@ -57,6 +57,7 @@ Three workspace packages:
   `freeatseafilm.com`; `staging.freeatseafilm.com` (`CLOUDFLARE_ENV=staging`, `--env staging`) builds from Sanity
   drafts, is noindexed and password-gated. Secrets (`BREVO_API_KEY`, `SITE_PASSWORD`):
   `wrangler secret put X -c wrangler.deploy.jsonc [--env staging]`.
+  `/lab` experiments live in `src/lab` (pages in `src/lab/pages`), injected only for dev and staging builds.
 - **`apps/studio`** — Sanity Studio, self-hosted as a static-assets Worker at `studio.freeatseafilm.com`. Never bundled into the site build.
 - **`packages/content`** (`@fas/content`) — the boundary between the two. GROQ queries, TypeGen output, and the `@sanity/client` factory.
 

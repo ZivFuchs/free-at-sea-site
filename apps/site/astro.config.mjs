@@ -1,4 +1,6 @@
 // @ts-check
+import { readdirSync } from "node:fs";
+import { basename } from "node:path";
 import cloudflare from "@astrojs/cloudflare";
 import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";
@@ -16,6 +18,24 @@ const devSubscribe = {
 				res.statusCode = 204;
 				res.end();
 			});
+		},
+	},
+};
+
+/** `/lab` experiments: dev and staging builds only, never production. */
+/** @type {import("astro").AstroIntegration} */
+const lab = {
+	name: "lab",
+	hooks: {
+		"astro:config:setup": ({ command, injectRoute }) => {
+			if (command !== "dev" && process.env.CLOUDFLARE_ENV !== "staging") return;
+			for (const file of readdirSync(new URL("./src/lab/pages", import.meta.url))) {
+				const name = basename(file, ".astro");
+				injectRoute({
+					pattern: name === "index" ? "/lab" : `/lab/${name}`,
+					entrypoint: `./src/lab/pages/${file}`,
+				});
+			}
 		},
 	},
 };
@@ -48,6 +68,7 @@ export default defineConfig({
 	integrations: [
 		react(),
 		devSubscribe,
+		lab,
 		sitemap({ filter: (page) => !new URL(page).pathname.startsWith("/lab") }),
 	],
 	vite: {
