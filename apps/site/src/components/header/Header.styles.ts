@@ -1,12 +1,12 @@
 import * as stylex from "@stylexjs/stylex";
 import { color, font } from "@/theme/tokens.stylex";
 
-/** `--solid`: 0 transparent → 1 abyss, set from scroll on overlay pages. */
+/** `--solid`: 0 transparent → 1 abyss; transitions once scrolling starts on overlay pages. */
 const solid = (from: string, to: string) =>
-	`color-mix(in oklab, ${to} calc(var(--solid, 1) * 100%), ${from})`;
+	`color-mix(in oklab, ${to} calc(var(--solid) * 100%), ${from})`;
 /** Text colours swap on `--flip`, a quicker 0 → 1 timed to when the bar behind turns dark, so contrast holds. */
 const flip = (from: string, to: string) =>
-	`color-mix(in oklab, ${to} calc(var(--flip, 1) * 100%), ${from})`;
+	`color-mix(in oklab, ${to} calc(var(--flip) * 100%), ${from})`;
 
 /** Text colour over the transparent top of an overlay page: paper, or `--top` (ink, set over a light hero). */
 const top = (alpha: number) =>
@@ -24,11 +24,20 @@ export const styles = stylex.create({
 		zIndex: 40,
 		color: flip(top(100), color.paper),
 		backgroundColor: solid("transparent", color.abyss90),
-		backdropFilter: "blur(calc(var(--solid, 1) * 12px))",
+		backdropFilter: "blur(calc(var(--solid) * 12px))",
 		transitionProperty: "color",
 		transitionDuration: "200ms",
 	},
-	overlay: { marginBottom: "-4.5rem" },
+	/** `[data-solid]` set once scrolled. `--flip` runs over the middle of `--solid`'s fade, either way. */
+	overlay: {
+		marginBottom: "-4.5rem",
+		"--solid": { default: 0, ":is([data-solid])": 1 },
+		"--flip": { default: 0, ":is([data-solid])": 1 },
+		transitionProperty: "color, --solid, --flip",
+		transitionDuration: "200ms, 400ms, 100ms",
+		transitionDelay: { default: "0s, 0s, 200ms", ":is([data-solid])": "0s, 0s, 100ms" },
+		transitionTimingFunction: "ease",
+	},
 	bar: {
 		display: "grid",
 		gridTemplateColumns: "1fr auto 1fr",

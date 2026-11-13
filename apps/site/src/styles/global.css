@@ -2,6 +2,19 @@
 @import "@astryxdesign/core/reset.css";
 @import "../theme/built/free-at-sea.css";
 
+/* Header bar fade (`Header.styles.ts`): registered so they transition. */
+@property --solid {
+	syntax: "<number>";
+	inherits: true;
+	initial-value: 1;
+}
+
+@property --flip {
+	syntax: "<number>";
+	inherits: true;
+	initial-value: 1;
+}
+
 @layer reset {
 	/* The canvas matches the page, and no rubber-band bounce reveals it past the hero or footer. */
 	html {

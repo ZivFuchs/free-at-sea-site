@@ -26,7 +26,7 @@ const sides = [
 ];
 ---
 
-<header data-site-header data-overlay={overlay ? "" : undefined} {...sx(styles.header, overlay && styles.overlay)} style={overlay ? `--solid: 0; --flip: 0; --mark: 0;${darkTop ? " --top: var(--app-ink);" : ""}` : undefined}>
+<header data-site-header data-overlay={overlay ? "" : undefined} {...sx(styles.header, overlay && styles.overlay)} style={overlay ? `--mark: 0;${darkTop ? " --top: var(--app-ink);" : ""}` : undefined}>
 	<nav aria-label="Main" {...sx(layout.container, styles.bar)}>
 		{sides.map(({ items, side }, i) => (
 			<Fragment>
@@ -82,9 +82,6 @@ const sides = [
 		const fading = overlay ? [...document.querySelectorAll<HTMLElement>("[data-hero-fade]")] : [];
 		const mark = header.querySelector<HTMLElement>("[data-mark]");
 		const ease = (t: number) => t * t * (3 - 2 * t);
-		/** Stretch of the bar fade-in over which text swaps tone: where the glass starts to outweigh a light backdrop. */
-		const FLIP_FROM = 0.25;
-		const FLIP_SPAN = 0.25;
 		let frame = 0;
 
 		const centre = (el: HTMLElement) => {
@@ -98,9 +95,7 @@ const sides = [
 			const max = document.documentElement.scrollHeight - innerHeight;
 			header.style.setProperty("--tide", String(max > 0 ? Math.min(y / max, 1) : 0));
 			if (!overlay) return;
-			const solid = Math.min(y / Math.max(header.offsetHeight, innerHeight * 0.3), 1);
-			header.style.setProperty("--solid", String(solid));
-			header.style.setProperty("--flip", String(ease(Math.min(Math.max((solid - FLIP_FROM) / FLIP_SPAN, 0), 1))));
+			header.toggleAttribute("data-solid", y > 0);
 			if (!title || !mark) return;
 
 			// One eased progress, from the top until the hero title's centre reaches the wordmark's, crossfades the two.
