@@ -24,19 +24,8 @@ export const styles = stylex.create({
 		fontSize: "1.125rem",
 		lineHeight: 1.5,
 	},
-	heading: {
-		marginTop: "3.5rem",
-		paddingBottom: "0.75rem",
-		borderBottomWidth: "1px",
-		borderBottomStyle: "solid",
-		borderBottomColor: color.paper15,
-		fontFamily: font.sans,
-		fontSize: "0.75rem",
-		letterSpacing: "0.14em",
-		textTransform: "uppercase",
-		color: color.paper65,
-	},
 	list: {
+		marginTop: "3.5rem",
 		display: "grid",
 		gridTemplateColumns: {
 			default: "1fr",

@@ -1,15 +1,11 @@
 ---
 import { linkMarker, styles } from "@/lab/LabIndex.styles";
 import LabLayout from "@/lab/LabLayout.astro";
-import { LAB, type LabEntry } from "@/lab/registry";
+import { LAB } from "@/lab/registry";
 import { sx } from "@/lib/sx";
 import { layout } from "@/styles/layout";
 
 const pad = (n: number) => String(n).padStart(2, "0");
-const groups: { heading: string; kind: LabEntry["kind"] }[] = [
-	{ heading: "Whole-page concepts", kind: "page" },
-	{ heading: "Section variants", kind: "sections" },
-];
 ---
 
 <LabLayout>
@@ -17,26 +13,21 @@ const groups: { heading: string; kind: LabEntry["kind"] }[] = [
 		<p {...sx(styles.eyebrow)}>Free at Sea · Lab</p>
 		<h1 {...sx(styles.title)}>Experiments</h1>
 		<p {...sx(styles.lede)}>Each one pushes a single idea as far as it goes. Nothing here is linked from the site.</p>
-		{
-			groups.map(({ heading, kind }) => (
-				<section>
-					<h2 {...sx(styles.heading)}>{heading}</h2>
-					<ul {...sx(styles.list)}>
-						{LAB.filter((e) => e.kind === kind).map(({ slug, title, pitch, moods, tech }) => (
-							<li>
-								<a href={`/lab/${slug}`} {...sx(linkMarker, styles.link)}>
-									<span {...sx(styles.number)}>{pad(LAB.findIndex((e) => e.slug === slug) + 1)}</span>
-									<span>
-										<span {...sx(styles.name)}>{title}</span>
-										<p {...sx(styles.pitch)}>{pitch}</p>
-										<p {...sx(styles.tags)}>{[...moods, ...tech].join(" · ")}</p>
-									</span>
-								</a>
-							</li>
-						))}
-					</ul>
-				</section>
-			))
-		}
+		<ul {...sx(styles.list)}>
+			{
+				LAB.map(({ slug, title, pitch, moods, tech }, i) => (
+					<li>
+						<a href={`/lab/${slug}`} {...sx(linkMarker, styles.link)}>
+							<span {...sx(styles.number)}>{pad(i + 1)}</span>
+							<span>
+								<span {...sx(styles.name)}>{title}</span>
+								<p {...sx(styles.pitch)}>{pitch}</p>
+								<p {...sx(styles.tags)}>{[...moods, ...tech].join(" · ")}</p>
+							</span>
+						</a>
+					</li>
+				))
+			}
+		</ul>
 	</main>
 </LabLayout>
