@@ -29,10 +29,14 @@ Stripe, Crypto, via Mo Monuments
 
 # Maybe
 
+High seas and laws map
+
+Review messages with Osy
 website definition seasteading and project index. 
 Animations, feeling of water
 3D models we generate from the footage.
 Make the viewer feel like they're there
+Hurricane animation
 
 Team (with Talent/Join?)
 Contact
