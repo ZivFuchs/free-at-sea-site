@@ -1,6 +1,6 @@
 {
 	"$schema": "./node_modules/wrangler/config-schema.json",
-	"account_id": "4009597948c3d6ff2b8c74ed78b418cd",
+	"account_id": "08bc090346c8148fda3e357569782486",
 	"name": "free-at-sea-studio",
 	"compatibility_date": "2026-09-03",
 	"assets": {

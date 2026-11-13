@@ -2,7 +2,7 @@
 	"$schema": "./node_modules/wrangler/config-schema.json",
 	"compatibility_date": "2026-09-03",
 	"compatibility_flags": ["global_fetch_strictly_public"],
-	"account_id": "4009597948c3d6ff2b8c74ed78b418cd",
+	"account_id": "08bc090346c8148fda3e357569782486",
 	"name": "free-at-sea",
 	"main": "@astrojs/cloudflare/entrypoints/server",
 	"assets": {
